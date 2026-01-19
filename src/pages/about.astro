@@ -90,24 +90,24 @@ const structuredData = [faqStructuredData, howToStructuredData];
   <article class="max-w-4xl mx-auto" itemscope itemtype="https://schema.org/Article">
     <!-- Hero -->
     <header class="text-center py-12">
-      <h1 class="text-4xl md:text-5xl font-display font-black mb-4" itemprop="headline">
+      <h1 class="text-4xl md:text-5xl font-display font-black mb-4 text-mmc-primary" itemprop="headline">
         <span class="text-mmc-accent">MMC Score</span> 평가 기준
       </h1>
-      <p class="text-white/70 text-lg max-w-2xl mx-auto" itemprop="description">
-        마케팅 자본이 아닌 <strong>실력(Human Capital)</strong>으로 평가합니다.<br />
+      <p class="text-mmc-secondary text-lg max-w-2xl mx-auto" itemprop="description">
+        마케팅 자본이 아닌 <strong class="text-mmc-primary">실력(Human Capital)</strong>으로 평가합니다.<br />
         제3자 검증 가능한 객관적 데이터만 인정합니다.
       </p>
     </header>
 
     <!-- Anti-Fraud 원칙 -->
-    <section class="bg-red-500/10 border border-red-500/30 rounded-xl p-6 mb-12">
-      <h2 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-        🛡️ Anti-Fraud 원칙
+    <section class="bg-red-50 border border-red-200 rounded-lg p-6 mb-12">
+      <h2 class="text-xl font-bold text-red-700 mb-4">
+        Anti-Fraud 원칙
       </h2>
-      <div class="grid md:grid-cols-2 gap-4 text-white/80">
-        <div class="bg-mmc-primary/50 p-4 rounded-lg">
-          <h3 class="font-bold text-white mb-2">❌ 인정되지 않는 것</h3>
-          <ul class="text-sm space-y-1">
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-white border border-red-100 p-4 rounded-lg">
+          <h3 class="font-bold text-red-600 mb-2">인정되지 않는 것</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
             <li>• "만족도 1위" (자체 통계)</li>
             <li>• "최다 시술" (검증 불가)</li>
             <li>• "~전문", "~특화" (자기 선언)</li>
@@ -115,9 +115,9 @@ const structuredData = [faqStructuredData, howToStructuredData];
             <li>• 광고성 언론 보도</li>
           </ul>
         </div>
-        <div class="bg-mmc-primary/50 p-4 rounded-lg">
-          <h3 class="font-bold text-white mb-2">✅ 인정되는 것</h3>
-          <ul class="text-sm space-y-1">
+        <div class="bg-white border border-emerald-100 p-4 rounded-lg">
+          <h3 class="font-bold text-emerald-600 mb-2">인정되는 것</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
             <li>• SCI 논문 (PubMed 검색 가능)</li>
             <li>• 제조사 공식 인증 (볼륨 어워드)</li>
             <li>• 학회 임원직 (공식 명단)</li>
@@ -130,67 +130,67 @@ const structuredData = [faqStructuredData, howToStructuredData];
 
     <!-- 배점 기준 -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        📊 MMC Score 배점 기준
+      <h2 class="text-2xl font-bold mb-6 text-mmc-primary">
+        MMC Score 배점 기준
       </h2>
 
       <!-- Foundation -->
-      <div class="bg-white/5 rounded-xl p-6 mb-4">
-        <h3 class="text-lg font-bold text-blue-400 mb-3">Foundation (기본 자격)</h3>
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-white border border-mmc-border rounded-lg p-6 mb-4">
+        <h3 class="text-lg font-bold text-emerald-600 mb-3">Foundation (기본 자격)</h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-mmc-secondary">
           <div class="space-y-2">
-            <div class="flex justify-between"><span>피부과/성형외과 전문의</span><span class="text-mmc-accent">+40점</span></div>
-            <div class="flex justify-between"><span>타과 전문의</span><span class="text-mmc-accent">+30점</span></div>
-            <div class="flex justify-between"><span>일반의</span><span class="text-mmc-accent">+10점</span></div>
+            <div class="flex justify-between"><span>피부과/성형외과 전문의</span><span class="font-semibold text-mmc-primary">+40점</span></div>
+            <div class="flex justify-between"><span>타과 전문의</span><span class="font-semibold text-mmc-primary">+30점</span></div>
+            <div class="flex justify-between"><span>일반의</span><span class="font-semibold text-mmc-primary">+10점</span></div>
           </div>
           <div class="space-y-2">
-            <div class="flex justify-between"><span>경력 (1년당)</span><span class="text-mmc-accent">+2점</span></div>
-            <div class="flex justify-between"><span>펠로우십</span><span class="text-mmc-accent">+10점</span></div>
+            <div class="flex justify-between"><span>경력 (1년당)</span><span class="font-semibold text-mmc-primary">+2점</span></div>
+            <div class="flex justify-between"><span>펠로우십</span><span class="font-semibold text-mmc-primary">+10점</span></div>
           </div>
         </div>
       </div>
 
       <!-- Academic -->
-      <div class="bg-white/5 rounded-xl p-6 mb-4">
-        <h3 class="text-lg font-bold text-purple-400 mb-3">Academic (학술 연구)</h3>
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-white border border-mmc-border rounded-lg p-6 mb-4">
+        <h3 class="text-lg font-bold text-blue-600 mb-3">Academic (학술 연구)</h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-mmc-secondary">
           <div class="space-y-2">
-            <div class="flex justify-between"><span>SCI 논문 1저자</span><span class="text-mmc-accent">+30점/편</span></div>
-            <div class="flex justify-between"><span>SCI 논문 공저</span><span class="text-mmc-accent">+5점/편</span></div>
+            <div class="flex justify-between"><span>SCI 논문 1저자</span><span class="font-semibold text-mmc-primary">+30점/편</span></div>
+            <div class="flex justify-between"><span>SCI 논문 공저</span><span class="font-semibold text-mmc-primary">+5점/편</span></div>
           </div>
           <div class="space-y-2">
-            <div class="flex justify-between"><span>IF 5+ 보너스</span><span class="text-mmc-accent">+20점/편</span></div>
-            <div class="flex justify-between"><span>의학박사</span><span class="text-mmc-accent">+20점</span></div>
+            <div class="flex justify-between"><span>IF 5+ 보너스</span><span class="font-semibold text-mmc-primary">+20점/편</span></div>
+            <div class="flex justify-between"><span>의학박사</span><span class="font-semibold text-mmc-primary">+20점</span></div>
           </div>
         </div>
       </div>
 
       <!-- Clinical -->
-      <div class="bg-white/5 rounded-xl p-6 mb-4">
-        <h3 class="text-lg font-bold text-pink-400 mb-3">Clinical Mastery (임상 시술)</h3>
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-white border border-mmc-border rounded-lg p-6 mb-4">
+        <h3 class="text-lg font-bold text-red-600 mb-3">Clinical Mastery (임상 시술)</h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-mmc-secondary">
           <div class="space-y-2">
-            <div class="flex justify-between"><span>제조사 볼륨 인증</span><span class="text-mmc-accent">+30점/건</span></div>
-            <div class="flex justify-between"><span>공식 트레이너</span><span class="text-mmc-accent">+20점/건</span></div>
+            <div class="flex justify-between"><span>제조사 볼륨 인증</span><span class="font-semibold text-mmc-primary">+30점/건</span></div>
+            <div class="flex justify-between"><span>공식 트레이너</span><span class="font-semibold text-mmc-primary">+20점/건</span></div>
           </div>
           <div class="space-y-2">
-            <div class="flex justify-between"><span>시그니처 시술 5천례</span><span class="text-mmc-accent">+10점</span></div>
-            <div class="flex justify-between"><span>시그니처 시술 1만례</span><span class="text-mmc-accent">+50점</span></div>
-            <div class="flex justify-between"><span>무사고 10년+</span><span class="text-mmc-accent">+30점</span></div>
+            <div class="flex justify-between"><span>시그니처 시술 5천례</span><span class="font-semibold text-mmc-primary">+10점</span></div>
+            <div class="flex justify-between"><span>시그니처 시술 1만례</span><span class="font-semibold text-mmc-primary">+50점</span></div>
+            <div class="flex justify-between"><span>무사고 10년+</span><span class="font-semibold text-mmc-primary">+30점</span></div>
           </div>
         </div>
       </div>
 
       <!-- Reputation -->
-      <div class="bg-white/5 rounded-xl p-6 mb-4">
-        <h3 class="text-lg font-bold text-yellow-400 mb-3">Reputation (대외 활동)</h3>
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-white border border-mmc-border rounded-lg p-6 mb-4">
+        <h3 class="text-lg font-bold text-orange-600 mb-3">Reputation (대외 활동)</h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-mmc-secondary">
           <div class="space-y-2">
-            <div class="flex justify-between"><span>키닥터 (KOL)</span><span class="text-mmc-accent">+3점/건</span></div>
-            <div class="flex justify-between"><span>학회 임원</span><span class="text-mmc-accent">+5점/건 (max 30)</span></div>
+            <div class="flex justify-between"><span>키닥터 (KOL)</span><span class="font-semibold text-mmc-primary">+3점/건</span></div>
+            <div class="flex justify-between"><span>학회 임원</span><span class="font-semibold text-mmc-primary">+5점/건 (max 30)</span></div>
           </div>
           <div class="space-y-2">
-            <div class="flex justify-between"><span>의학 저서</span><span class="text-mmc-accent">+10점/권</span></div>
+            <div class="flex justify-between"><span>의학 저서</span><span class="font-semibold text-mmc-primary">+10점/권</span></div>
           </div>
         </div>
       </div>
@@ -198,101 +198,92 @@ const structuredData = [faqStructuredData, howToStructuredData];
 
     <!-- 등급 기준 -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        🏆 등급 기준
+      <h2 class="text-2xl font-bold mb-6 text-mmc-primary">
+        등급 기준
       </h2>
       <div class="grid md:grid-cols-4 gap-4">
-        <div class="bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 border border-yellow-500/30 rounded-xl p-4 text-center">
-          <span class="text-3xl">👑</span>
-          <h3 class="font-bold text-yellow-400 mt-2">Laureate</h3>
-          <p class="text-2xl font-bold mt-1">500+</p>
-          <p class="text-xs text-white/60 mt-2">계관 의료인<br />학술과 임상 모두 정점</p>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+          <h3 class="font-bold text-amber-800 mt-2">Laureate</h3>
+          <p class="text-2xl font-display font-bold text-amber-700 mt-1">500+</p>
+          <p class="text-xs text-mmc-secondary mt-2">계관 의료인<br />학술과 임상 모두 정점</p>
         </div>
-        <div class="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-xl p-4 text-center">
-          <span class="text-3xl">⭐</span>
-          <h3 class="font-bold text-purple-400 mt-2">Authority</h3>
-          <p class="text-2xl font-bold mt-1">350+</p>
-          <p class="text-xs text-white/60 mt-2">권위자<br />해당 분야 전문가</p>
+        <div class="bg-violet-50 border border-violet-200 rounded-lg p-4 text-center">
+          <h3 class="font-bold text-violet-800 mt-2">Authority</h3>
+          <p class="text-2xl font-display font-bold text-violet-700 mt-1">350+</p>
+          <p class="text-xs text-mmc-secondary mt-2">권위자<br />해당 분야 전문가</p>
         </div>
-        <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-xl p-4 text-center">
-          <span class="text-3xl">🏅</span>
-          <h3 class="font-bold text-blue-400 mt-2">Master</h3>
-          <p class="text-2xl font-bold mt-1">200+</p>
-          <p class="text-xs text-white/60 mt-2">마스터<br />검증된 실력자</p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+          <h3 class="font-bold text-blue-800 mt-2">Master</h3>
+          <p class="text-2xl font-display font-bold text-blue-700 mt-1">200+</p>
+          <p class="text-xs text-mmc-secondary mt-2">마스터<br />검증된 실력자</p>
         </div>
-        <div class="bg-gradient-to-br from-gray-500/20 to-gray-600/10 border border-gray-500/30 rounded-xl p-4 text-center">
-          <span class="text-3xl">✓</span>
-          <h3 class="font-bold text-gray-400 mt-2">Diplomate</h3>
-          <p class="text-2xl font-bold mt-1">100+</p>
-          <p class="text-xs text-white/60 mt-2">인증의<br />기본 자격 충족</p>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+          <h3 class="font-bold text-emerald-800 mt-2">Diplomate</h3>
+          <p class="text-2xl font-display font-bold text-emerald-700 mt-1">100+</p>
+          <p class="text-xs text-mmc-secondary mt-2">인증의<br />기본 자격 충족</p>
         </div>
       </div>
     </section>
 
     <!-- 의사 유형 -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        🎯 MAD-TI 의사 유형
+      <h2 class="text-2xl font-bold mb-6 text-mmc-primary">
+        MAD-TI 의사 유형
       </h2>
       <div class="grid md:grid-cols-3 gap-4">
-        <div class="bg-white/5 rounded-xl p-4">
-          <span class="text-2xl">📜</span>
-          <h3 class="font-bold text-purple-400 mt-2">Scholar (학구파)</h3>
-          <p class="text-sm text-white/70 mt-1">학술 역량이 뛰어난 연구 중심 의사</p>
+        <div class="bg-white border border-mmc-border rounded-lg p-4">
+          <h3 class="font-bold text-blue-600 mt-2">Scholar (학구파)</h3>
+          <p class="text-sm text-mmc-secondary mt-1">학술 역량이 뛰어난 연구 중심 의사</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4">
-          <span class="text-2xl">🖐️</span>
-          <h3 class="font-bold text-pink-400 mt-2">Maestro (실전파)</h3>
-          <p class="text-sm text-white/70 mt-1">임상 시술 경험이 압도적인 손끝의 달인</p>
+        <div class="bg-white border border-mmc-border rounded-lg p-4">
+          <h3 class="font-bold text-red-600 mt-2">Maestro (실전파)</h3>
+          <p class="text-sm text-mmc-secondary mt-1">임상 시술 경험이 압도적인 손끝의 달인</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4">
-          <span class="text-2xl">🚀</span>
-          <h3 class="font-bold text-blue-400 mt-2">Pioneer (선구자)</h3>
-          <p class="text-sm text-white/70 mt-1">트레이너로서 후배 양성에 기여</p>
+        <div class="bg-white border border-mmc-border rounded-lg p-4">
+          <h3 class="font-bold text-orange-600 mt-2">Pioneer (선구자)</h3>
+          <p class="text-sm text-mmc-secondary mt-1">트레이너로서 후배 양성에 기여</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4">
-          <span class="text-2xl">🛡️</span>
-          <h3 class="font-bold text-green-400 mt-2">Guardian (수호자)</h3>
-          <p class="text-sm text-white/70 mt-1">안전 기록과 균형잡힌 역량</p>
+        <div class="bg-white border border-mmc-border rounded-lg p-4">
+          <h3 class="font-bold text-emerald-600 mt-2">Guardian (수호자)</h3>
+          <p class="text-sm text-mmc-secondary mt-1">안전 기록과 균형잡힌 역량</p>
         </div>
-        <div class="bg-white/5 rounded-xl p-4 md:col-span-2">
-          <span class="text-2xl">⬡</span>
-          <h3 class="font-bold text-yellow-400 mt-2">Hexagon (완전체)</h3>
-          <p class="text-sm text-white/70 mt-1">모든 영역에서 고르게 높은 점수 - 진정한 올라운더</p>
+        <div class="bg-white border border-mmc-border rounded-lg p-4 md:col-span-2">
+          <h3 class="font-bold text-violet-600 mt-2">Hexagon (완전체)</h3>
+          <p class="text-sm text-mmc-secondary mt-1">모든 영역에서 고르게 높은 점수 - 진정한 올라운더</p>
         </div>
       </div>
     </section>
 
     <!-- FAQ -->
     <section class="mb-12">
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        ❓ 자주 묻는 질문
+      <h2 class="text-2xl font-bold mb-6 text-mmc-primary">
+        자주 묻는 질문
       </h2>
       <div class="space-y-4">
-        <details class="bg-white/5 rounded-xl p-4 group">
-          <summary class="font-bold cursor-pointer list-none flex justify-between items-center">
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-bold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
             MadMedCheck는 어떤 기준으로 의사를 평가하나요?
             <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <p class="mt-4 text-white/70 text-sm">
+          <p class="mt-4 text-mmc-secondary text-sm">
             제3자 검증 가능한 객관적 데이터만 인정합니다. SCI 논문(PubMed 검색 가능), 제조사 공식 인증(볼륨 어워드, 트레이너), 학회 임원직, 전문의 자격증 등 외부에서 검증할 수 있는 팩트만 점수에 반영됩니다.
           </p>
         </details>
-        <details class="bg-white/5 rounded-xl p-4 group">
-          <summary class="font-bold cursor-pointer list-none flex justify-between items-center">
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-bold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
             자기 주장은 왜 점수에 반영되지 않나요?
             <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <p class="mt-4 text-white/70 text-sm">
+          <p class="mt-4 text-mmc-secondary text-sm">
             Anti-Fraud 원칙에 따라 '자기 주장 = 0점'입니다. "만족도 1위", "최다 시술" 같은 자체 통계는 검증이 불가능합니다. 마케팅 자본이 아닌 실력으로만 평가받아야 합니다.
           </p>
         </details>
-        <details class="bg-white/5 rounded-xl p-4 group">
-          <summary class="font-bold cursor-pointer list-none flex justify-between items-center">
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-bold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
             데이터는 얼마나 자주 업데이트되나요?
             <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
           </summary>
-          <p class="mt-4 text-white/70 text-sm">
+          <p class="mt-4 text-mmc-secondary text-sm">
             빌보드 HOT 100처럼 주간 단위로 업데이트됩니다. 새로운 논문 발표, 인증 획득, 학회 활동 등이 실시간에 가깝게 반영됩니다.
           </p>
         </details>
@@ -300,17 +291,17 @@ const structuredData = [faqStructuredData, howToStructuredData];
     </section>
 
     <!-- CTA -->
-    <section class="text-center py-12 bg-gradient-to-r from-mmc-accent/20 to-pink-500/20 rounded-xl">
-      <h2 class="text-2xl font-bold mb-4">실력있는 의사를 찾고 계신가요?</h2>
-      <p class="text-white/70 mb-6">MadMedCheck TOP 100에서 객관적 데이터로 검증된 의료인을 확인하세요.</p>
-      <a href="/" class="inline-block bg-mmc-accent text-white font-bold px-8 py-3 rounded-full hover:bg-mmc-accent/80 transition">
-        TOP 100 보기 →
+    <section class="text-center py-12 bg-mmc-surface border border-mmc-border rounded-lg">
+      <h2 class="text-2xl font-bold mb-4 text-mmc-primary">실력있는 의사를 찾고 계신가요?</h2>
+      <p class="text-mmc-secondary mb-6">MadMedCheck TOP 100에서 객관적 데이터로 검증된 의료인을 확인하세요.</p>
+      <a href="/" class="inline-block bg-mmc-accent text-white font-bold px-8 py-3 rounded-lg hover:bg-red-700 transition">
+        TOP 100 보기
       </a>
     </section>
 
     <!-- 데이터 출처 명시 -->
-    <footer class="mt-12 pt-8 border-t border-white/10 text-sm text-white/50">
-      <h3 class="font-bold text-white/70 mb-2">데이터 출처</h3>
+    <footer class="mt-12 pt-8 border-t border-mmc-border text-sm text-mmc-secondary">
+      <h3 class="font-bold text-mmc-primary mb-2">데이터 출처</h3>
       <ul class="space-y-1">
         <li>• SCI 논문: PubMed (National Library of Medicine)</li>
         <li>• 전문의 자격: 대한의사협회</li>

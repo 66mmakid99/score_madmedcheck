@@ -54,6 +54,13 @@ const organizationData = {
   "slogan": "실력 있는 의료인이 소비자와 만나는 가장 정직한 길",
   "knowsAbout": ["의료인 평가", "피부과 전문의", "성형외과 전문의", "SCI 논문", "의료 품질 평가"]
 };
+
+// 현재 날짜
+const currentDate = new Date().toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 ---
 
 <!doctype html>
@@ -125,19 +132,33 @@ const organizationData = {
       <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
   </head>
-  <body class="bg-mmc-primary text-white min-h-screen font-sans">
-    <header class="border-b border-white/10 sticky top-0 bg-mmc-primary/95 backdrop-blur z-50">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2">
-          <span class="text-2xl">🏥</span>
-          <span class="font-display font-bold text-xl">
-            MAD<span class="text-mmc-accent">MED</span>CHECK
-          </span>
-        </a>
-        <nav class="flex gap-6 text-sm">
-          <a href="/" class="hover:text-mmc-accent transition">TOP 100</a>
-          <a href="/about" class="hover:text-mmc-accent transition">평가기준</a>
-        </nav>
+  <body class="bg-mmc-bg text-mmc-primary min-h-screen font-sans">
+    <!-- Header: Billboard-style clean header -->
+    <header class="bg-white border-b border-mmc-border sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between py-4">
+          <a href="/" class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-mmc-accent rounded-lg flex items-center justify-center">
+              <span class="text-white font-display font-black text-sm">M</span>
+            </div>
+            <div>
+              <span class="font-display font-black text-xl tracking-tight">
+                MADMEDCHECK
+              </span>
+              <div class="text-xs text-mmc-secondary -mt-0.5">The Doctor Chart</div>
+            </div>
+          </a>
+
+          <nav class="flex items-center gap-8">
+            <a href="/" class="text-sm font-semibold text-mmc-primary hover:text-mmc-accent transition">
+              TOP 100
+            </a>
+            <a href="/about" class="text-sm font-semibold text-mmc-secondary hover:text-mmc-accent transition">
+              평가기준
+            </a>
+          </nav>
+        </div>
       </div>
     </header>
 
@@ -145,9 +166,23 @@ const organizationData = {
       <slot />
     </main>
 
-    <footer class="border-t border-white/10 mt-16">
-      <div class="max-w-6xl mx-auto px-4 py-8 text-center text-white/50 text-sm">
-        <p>© 2025 MadMedCheck. 실력 있는 의료인이 소비자와 만나는 가장 정직한 길.</p>
+    <!-- Footer: Clean, minimal -->
+    <footer class="bg-mmc-surface border-t border-mmc-border mt-16">
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-mmc-primary rounded flex items-center justify-center">
+              <span class="text-white font-display font-bold text-xs">M</span>
+            </div>
+            <span class="font-display font-bold text-sm">MADMEDCHECK</span>
+          </div>
+          <p class="text-mmc-secondary text-sm text-center">
+            실력 있는 의료인이 소비자와 만나는 가장 정직한 길
+          </p>
+          <p class="text-mmc-secondary text-xs">
+            © 2025 MadMedCheck
+          </p>
+        </div>
       </div>
     </footer>
   </body>

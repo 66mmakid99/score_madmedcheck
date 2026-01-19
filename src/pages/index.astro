@@ -62,82 +62,132 @@ const sampleDoctors = doctors.length > 0 ? doctors : [
     rank: 3,
   },
 ];
+
+// 현재 날짜
+const currentDate = new Date().toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+
+const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
 ---
 
 <Layout title="TOP 100 의사 랭킹">
-  <!-- Hero -->
-  <section class="text-center py-12">
-    <h1 class="text-4xl md:text-5xl font-display font-black mb-4">
-      실력으로 검증된<br />
-      <span class="text-mmc-accent">TOP 100</span> 의사
-    </h1>
-    <p class="text-white/60 max-w-xl mx-auto">
-      마케팅이 아닌 실력으로 평가합니다.<br />
-      학술 논문, 시술 볼륨, 동료 평가 등 객관적 데이터만 반영합니다.
-    </p>
-  </section>
-
-  <!-- Stats -->
-  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
-      <div class="text-2xl font-display font-bold">{stats.total || sampleDoctors.length}</div>
-      <div class="text-white/50 text-sm">검증된 의사</div>
-    </div>
-    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
-      <div class="text-2xl font-display font-bold text-tier-laureate">
-        {stats.tierCounts?.Laureate || 1}
+  <!-- Chart Header: Billboard style -->
+  <div class="mb-8">
+    <!-- Title Section -->
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+      <div>
+        <div class="text-sm text-mmc-secondary font-medium mb-1">
+          The Doctor Chart
+        </div>
+        <h1 class="text-4xl md:text-5xl font-display font-black tracking-tight">
+          TOP 100
+        </h1>
+        <p class="text-mmc-secondary mt-2">
+          마케팅이 아닌 실력으로 검증된 의사 랭킹
+        </p>
       </div>
-      <div class="text-white/50 text-sm">Laureate</div>
-    </div>
-    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
-      <div class="text-2xl font-display font-bold">{stats.avgScore || 335}</div>
-      <div class="text-white/50 text-sm">평균 점수</div>
-    </div>
-    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
-      <div class="text-2xl font-display font-bold">주간</div>
-      <div class="text-white/50 text-sm">업데이트 주기</div>
-    </div>
-  </section>
 
-  <!-- 등급 가이드 -->
-  <section class="flex flex-wrap justify-center gap-3 mb-8">
+      <div class="flex items-center gap-6 text-sm">
+        <div class="text-right">
+          <div class="text-mmc-secondary">차트 날짜</div>
+          <div class="font-semibold">{currentDate}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-mmc-secondary">Week</div>
+          <div class="font-display font-bold text-lg">{weekNumber}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div>
+          <div class="text-2xl font-display font-bold">{stats.total || sampleDoctors.length}</div>
+          <div class="text-mmc-secondary text-sm">검증된 의사</div>
+        </div>
+        <div>
+          <div class="text-2xl font-display font-bold text-tier-laureate">
+            {stats.tierCounts?.Laureate || 1}
+          </div>
+          <div class="text-mmc-secondary text-sm">Laureate 등급</div>
+        </div>
+        <div>
+          <div class="text-2xl font-display font-bold">{stats.avgScore || 335}</div>
+          <div class="text-mmc-secondary text-sm">평균 점수</div>
+        </div>
+        <div>
+          <div class="text-2xl font-display font-bold">Weekly</div>
+          <div class="text-mmc-secondary text-sm">업데이트 주기</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tier Legend -->
+  <div class="flex flex-wrap items-center gap-4 mb-6 text-sm">
+    <span class="text-mmc-secondary font-medium">등급:</span>
     {Object.entries(TIER_INFO).map(([tier, info]) => (
-      <div class="flex items-center gap-2 text-sm text-white/60">
-        <span>{info.emoji}</span>
-        <span class={`text-${info.color}`}>{info.label}</span>
-        <span>({info.labelKo})</span>
+      <div class="flex items-center gap-1.5">
+        <span class={`w-2.5 h-2.5 rounded-full bg-tier-${tier.toLowerCase()}`}></span>
+        <span class="font-medium">{info.label}</span>
+        <span class="text-mmc-secondary">({info.labelKo})</span>
       </div>
     ))}
-  </section>
+  </div>
+
+  <!-- Chart Table Header -->
+  <div class="bg-mmc-surface border border-mmc-border rounded-t-lg">
+    <div class="grid grid-cols-12 gap-4 px-4 py-3 text-xs font-semibold text-mmc-secondary uppercase tracking-wider">
+      <div class="col-span-1 text-center">#</div>
+      <div class="col-span-5 md:col-span-4">의료인</div>
+      <div class="col-span-3 md:col-span-4 hidden md:block">세부 정보</div>
+      <div class="col-span-3 md:col-span-2 text-center">등급</div>
+      <div class="col-span-3 md:col-span-1 text-right">점수</div>
+    </div>
+  </div>
 
   <!-- Doctor List -->
-  <section>
-    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-      <span>🏆</span> TOP 100 랭킹
-    </h2>
+  <div class="border-x border-b border-mmc-border rounded-b-lg overflow-hidden">
+    {sampleDoctors.map((doctor, index) => (
+      <DoctorCard doctor={doctor} isFirst={index === 0} isLast={index === sampleDoctors.length - 1} />
+    ))}
+  </div>
 
-    <div class="space-y-3">
-      {sampleDoctors.map((doctor) => (
-        <DoctorCard doctor={doctor} />
-      ))}
+  {sampleDoctors.length === 0 && (
+    <div class="text-center py-20 text-mmc-secondary border border-mmc-border rounded-lg bg-mmc-surface">
+      <p>데이터를 불러오는 중...</p>
     </div>
+  )}
 
-    {sampleDoctors.length === 0 && (
-      <div class="text-center py-20 text-white/40">
-        <p>데이터를 불러오는 중...</p>
-      </div>
-    )}
-  </section>
+  <!-- Data Source Notice -->
+  <div class="mt-8 text-center">
+    <p class="text-sm text-mmc-secondary">
+      본 차트는 SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만을 기반으로 합니다.
+      <a href="/about" class="text-mmc-accent hover:underline">평가 기준 자세히 보기</a>
+    </p>
+  </div>
 
-  <!-- CTA -->
-  <section class="mt-16 text-center bg-mmc-secondary rounded-2xl p-8">
+  <!-- CTA Section -->
+  <section class="mt-12 bg-mmc-surface border border-mmc-border rounded-lg p-8 text-center">
     <h3 class="text-xl font-bold mb-2">의사이신가요?</h3>
-    <p class="text-white/60 mb-4">객관적 데이터를 제출하고 검증받으세요.</p>
+    <p class="text-mmc-secondary mb-4">객관적 데이터를 제출하고 검증받으세요.</p>
     <a
       href="/for-doctors"
-      class="inline-block bg-mmc-accent text-white px-6 py-2 rounded-full font-semibold hover:bg-mmc-accent/80 transition"
+      class="inline-block bg-mmc-accent text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
     >
       데이터 제출하기
     </a>
   </section>
 </Layout>
+
+<style>
+  /* Tier color dots */
+  .bg-tier-laureate { background-color: #b8860b; }
+  .bg-tier-authority { background-color: #7c3aed; }
+  .bg-tier-master { background-color: #2563eb; }
+  .bg-tier-diplomate { background-color: #059669; }
+</style>

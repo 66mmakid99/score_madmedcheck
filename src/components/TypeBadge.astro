@@ -5,21 +5,27 @@ import { TYPE_INFO } from '../lib/types';
 
 interface Props {
   type: DoctorType;
+  size?: 'sm' | 'md';
 }
 
-const { type } = Astro.props;
+const { type, size = 'md' } = Astro.props;
 const info = TYPE_INFO[type];
 
+const sizeClass = {
+  sm: 'text-xs px-2 py-0.5',
+  md: 'text-sm px-2.5 py-0.5',
+}[size];
+
+// Subtle outline style
 const colorClass = {
-  Scholar: 'border-type-scholar text-type-scholar',
-  Maestro: 'border-type-maestro text-type-maestro',
-  Pioneer: 'border-type-pioneer text-type-pioneer',
-  Guardian: 'border-type-guardian text-type-guardian',
-  Hexagon: 'border-type-hexagon text-type-hexagon',
+  Scholar: 'text-blue-700 border-blue-200 bg-blue-50',
+  Maestro: 'text-red-700 border-red-200 bg-red-50',
+  Pioneer: 'text-orange-700 border-orange-200 bg-orange-50',
+  Guardian: 'text-emerald-700 border-emerald-200 bg-emerald-50',
+  Hexagon: 'text-violet-700 border-violet-200 bg-violet-50',
 }[type];
 ---
 
-<span class={`inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full border ${colorClass}`}>
-  <span>{info.emoji}</span>
-  <span>{info.labelKo}</span>
+<span class={`inline-flex items-center rounded border font-medium ${sizeClass} ${colorClass}`}>
+  {info.labelKo}
 </span>
