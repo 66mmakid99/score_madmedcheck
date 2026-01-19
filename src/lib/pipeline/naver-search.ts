@@ -29,6 +29,73 @@ export interface HospitalBasicInfo {
   category: string;
 }
 
+// 제외할 카테고리 키워드
+const EXCLUDED_CATEGORIES = [
+  '한의원',
+  '한방',
+  '치과',
+  '정형외과',
+  '내과',
+  '산부인과',
+  '소아과',
+  '이비인후과',
+  '안과',
+  '정신과',
+  '비뇨기과',
+  '외과',
+  '신경외과',
+  '마취과',
+  '약국',
+  '한약',
+];
+
+// 제외할 이름 키워드
+const EXCLUDED_NAMES = [
+  '한의원',
+  '한방',
+  '치과',
+  '약국',
+  '의원', // 단독으로 "의원"만 있는 경우는 제외하지 않음
+];
+
+// 병원 필터링 함수
+function filterClinics(
+  clinics: HospitalBasicInfo[],
+  targetSpecialty: '피부과' | '성형외과'
+): HospitalBasicInfo[] {
+  return clinics.filter((clinic) => {
+    const name = clinic.name.toLowerCase();
+    const category = clinic.category.toLowerCase();
+
+    // 제외 카테고리 체크
+    for (const excluded of EXCLUDED_CATEGORIES) {
+      if (category.includes(excluded) || name.includes(excluded)) {
+        console.log(`  🚫 제외: ${clinic.name} (${clinic.category})`);
+        return false;
+      }
+    }
+
+    // 타겟 진료과가 카테고리나 이름에 포함되어야 함
+    const hasTargetSpecialty =
+      category.includes(targetSpecialty) ||
+      name.includes(targetSpecialty) ||
+      category.includes('피부') ||
+      name.includes('피부') ||
+      category.includes('성형') ||
+      name.includes('성형') ||
+      category.includes('의원') ||
+      category.includes('클리닉') ||
+      name.includes('클리닉');
+
+    if (!hasTargetSpecialty) {
+      console.log(`  🚫 제외 (타겟 아님): ${clinic.name} (${clinic.category})`);
+      return false;
+    }
+
+    return true;
+  });
+}
+
 export async function searchHospitals(
   query: string,
   clientId: string,
@@ -70,7 +137,14 @@ export async function searchClinicsInRegion(
   clientSecret: string
 ): Promise<HospitalBasicInfo[]> {
   const query = `${region} ${specialty}`;
-  return searchHospitals(query, clientId, clientSecret, 50);
+  const allClinics = await searchHospitals(query, clientId, clientSecret, 50);
+
+  // 한의원, 치과 등 제외
+  const filteredClinics = filterClinics(allClinics, specialty);
+
+  console.log(`  📋 검색 ${allClinics.length}개 → 필터링 후 ${filteredClinics.length}개`);
+
+  return filteredClinics;
 }
 
 // 여러 지역 일괄 검색
