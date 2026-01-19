@@ -186,22 +186,77 @@ const typeInfo = TYPE_INFO[sampleDoctor.doctor_type];
     </div>
   </section>
 
-  <!-- JSON-LD for AEO -->
+  <!-- JSON-LD: Physician Schema for AI/SEO -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Physician",
-    "name": sampleDoctor.doctor_name,
-    "medicalSpecialty": sampleDoctor.specialist_type,
+    "name": `${sampleDoctor.doctor_name} 원장`,
+    "givenName": sampleDoctor.doctor_name,
+    "medicalSpecialty": {
+      "@type": "MedicalSpecialty",
+      "name": sampleDoctor.specialist_type
+    },
+    "jobTitle": sampleDoctor.specialist_type,
     "worksFor": {
       "@type": "MedicalClinic",
       "name": sampleDoctor.hospital_name,
-      "address": sampleDoctor.region
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": sampleDoctor.region,
+        "addressCountry": "KR"
+      },
+      "url": sampleDoctor.hospital_url
     },
+    "description": sampleDoctor.consulting_comment,
+    "knowsAbout": [
+      sampleDoctor.specialist_type,
+      "피부 시술",
+      "레이저 치료",
+      "필러",
+      "보톡스"
+    ],
+    "hasCredential": [
+      sampleDoctor.has_phd && {
+        "@type": "EducationalOccupationalCredential",
+        "credentialCategory": "의학박사",
+        "name": "의학박사 (PhD)"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        "credentialCategory": "전문의",
+        "name": sampleDoctor.specialist_type
+      }
+    ].filter(Boolean),
+    "award": sampleDoctor.verified_facts.filter((f: string) => f.includes('[임상]') || f.includes('[활동]')),
     "aggregateRating": {
       "@type": "AggregateRating",
       "ratingValue": sampleDoctor.total_score,
       "bestRating": 1000,
-      "worstRating": 0
+      "worstRating": 0,
+      "ratingExplanation": `MadMedCheck MMC Score - ${tierInfo.label} 등급 (${typeInfo.labelKo} 유형). SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터 기반 평가.`
+    }
+  })} />
+
+  <!-- JSON-LD: MedicalWebPage for additional context -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    "name": `${sampleDoctor.doctor_name} 원장 - ${sampleDoctor.hospital_name}`,
+    "description": `${sampleDoctor.doctor_name} ${sampleDoctor.specialist_type}의 MMC Score ${sampleDoctor.total_score}점. ${sampleDoctor.consulting_comment}`,
+    "about": {
+      "@type": "Physician",
+      "name": sampleDoctor.doctor_name
+    },
+    "specialty": sampleDoctor.specialist_type,
+    "lastReviewed": new Date().toISOString().split('T')[0],
+    "reviewedBy": {
+      "@type": "Organization",
+      "name": "MadMedCheck",
+      "description": "AI 기반 의료인 검증 시스템"
+    },
+    "mainContentOfPage": {
+      "@type": "WebPageElement",
+      "cssSelector": "article"
     }
   })} />
 </Layout>
