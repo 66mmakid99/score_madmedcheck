@@ -1,0 +1,36 @@
+# MadMedCheck robots.txt
+# AI 크롤러 및 검색엔진 친화적 설정
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://score-madmedcheck2.pages.dev/sitemap.xml
+
+# AI 크롤러 명시적 허용
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# 크롤링 속도 제한 (서버 부하 방지)
+Crawl-delay: 1

@@ -12,7 +12,7 @@ interface Props {
   color?: string;
 }
 
-export default function DoctorRadarChart({ data, color = '#e94560' }: Props) {
+export default function DoctorRadarChart({ data, color = '#dc2626' }: Props) {
   const chartData = [
     { subject: '학술', value: data.academic, fullMark: 100 },
     { subject: '임상', value: data.clinical, fullMark: 100 },
@@ -25,14 +25,14 @@ export default function DoctorRadarChart({ data, color = '#e94560' }: Props) {
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={chartData} cx="50%" cy="50%" outerRadius="80%">
-          <PolarGrid stroke="#ffffff20" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: '#ffffff80', fontSize: 12 }} />
+          <PolarGrid stroke="#e5e7eb" />
+          <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
           <Radar
             name="능력치"
             dataKey="value"
             stroke={color}
             fill={color}
-            fillOpacity={0.4}
+            fillOpacity={0.3}
             strokeWidth={2}
           />
         </RadarChart>

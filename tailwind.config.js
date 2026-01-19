@@ -4,29 +4,42 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Billboard-inspired professional palette
         mmc: {
-          primary: '#0f0f1a',
-          secondary: '#1a1a2e',
-          accent: '#e94560',
+          bg: '#ffffff',
+          surface: '#f8f9fa',
+          border: '#e5e7eb',
+          primary: '#111827',
+          secondary: '#6b7280',
+          accent: '#dc2626', // Billboard red
         },
         tier: {
-          laureate: '#ffd700',
-          authority: '#a855f7',
-          master: '#3b82f6',
-          diplomate: '#22c55e',
+          laureate: '#b8860b', // Dark gold - prestigious
+          authority: '#7c3aed', // Purple
+          master: '#2563eb', // Blue
+          diplomate: '#059669', // Green
         },
         type: {
-          scholar: '#3b82f6',
-          maestro: '#ef4444',
-          pioneer: '#f97316',
-          guardian: '#22c55e',
-          hexagon: '#a855f7',
+          scholar: '#1d4ed8',
+          maestro: '#dc2626',
+          pioneer: '#ea580c',
+          guardian: '#059669',
+          hexagon: '#7c3aed',
         },
+        rank: {
+          gold: '#b8860b',
+          silver: '#6b7280',
+          bronze: '#b45309',
+        }
       },
       fontFamily: {
         sans: ['Pretendard', 'system-ui', 'sans-serif'],
         display: ['Montserrat', 'sans-serif'],
       },
+      boxShadow: {
+        'chart': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'chart-hover': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+      }
     },
   },
   plugins: [],

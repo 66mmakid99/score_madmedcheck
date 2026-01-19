@@ -6,9 +6,10 @@ import { TIER_INFO } from '../lib/types';
 interface Props {
   tier: Tier;
   size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
 }
 
-const { tier, size = 'md' } = Astro.props;
+const { tier, size = 'md', showLabel = true } = Astro.props;
 const info = TIER_INFO[tier];
 
 const sizeClass = {
@@ -17,15 +18,15 @@ const sizeClass = {
   lg: 'text-base px-4 py-1.5',
 }[size];
 
+// Subtle, professional color scheme
 const colorClass = {
-  Laureate: 'bg-tier-laureate text-black shadow-[0_0_12px_rgba(255,215,0,0.6)]',
-  Authority: 'bg-tier-authority text-white',
-  Master: 'bg-tier-master text-white',
-  Diplomate: 'bg-tier-diplomate text-white',
+  Laureate: 'bg-amber-50 text-amber-800 border-amber-200',
+  Authority: 'bg-violet-50 text-violet-800 border-violet-200',
+  Master: 'bg-blue-50 text-blue-800 border-blue-200',
+  Diplomate: 'bg-emerald-50 text-emerald-800 border-emerald-200',
 }[tier];
 ---
 
-<span class={`inline-flex items-center gap-1 rounded-full font-semibold ${sizeClass} ${colorClass}`}>
-  <span>{info.emoji}</span>
-  <span>{info.label}</span>
+<span class={`inline-flex items-center gap-1 rounded border font-medium ${sizeClass} ${colorClass}`}>
+  {showLabel && <span>{info.label}</span>}
 </span>

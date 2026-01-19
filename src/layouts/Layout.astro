@@ -3,19 +3,112 @@
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
+  ogType?: string;
+  canonicalUrl?: string;
+  structuredData?: object;
 }
 
-const { title, description = 'AI가 검증한 실력있는 의사 TOP 100' } = Astro.props;
+const siteUrl = 'https://score-madmedcheck2.pages.dev';
+const {
+  title,
+  description = 'AI가 검증한 실력있는 의사 TOP 100 - 마케팅이 아닌 객관적 데이터로 평가한 의료인 랭킹',
+  ogImage = `${siteUrl}/og-image.png`,
+  ogType = 'website',
+  canonicalUrl = Astro.url.href,
+  structuredData,
+} = Astro.props;
+
+const fullTitle = `${title} | MadMedCheck - AI 의료인 검증`;
+
+// 기본 구조화 데이터
+const defaultStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "MadMedCheck",
+  "alternateName": "매드메드체크",
+  "description": "AI 기반 의료인 검증 시스템 - SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만으로 평가한 실력있는 의사 TOP 100",
+  "url": siteUrl,
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": `${siteUrl}/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "MadMedCheck",
+    "description": "객관적 데이터 기반 의료인 평가 플랫폼",
+    "url": siteUrl
+  }
+};
+
+// Organization 구조화 데이터
+const organizationData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MadMedCheck",
+  "alternateName": "매드메드체크",
+  "url": siteUrl,
+  "description": "마케팅 자본이 아닌 실력(Human Capital)으로 의료인을 평가하는 AI 기반 검증 시스템",
+  "foundingDate": "2025",
+  "slogan": "실력 있는 의료인이 소비자와 만나는 가장 정직한 길",
+  "knowsAbout": ["의료인 평가", "피부과 전문의", "성형외과 전문의", "SCI 논문", "의료 품질 평가"]
+};
+
+// 현재 날짜
+const currentDate = new Date().toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
 ---
 
 <!doctype html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title} | MadMedCheck</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Language -->
+    <meta property="og:locale" content="ko_KR" />
+    <link rel="alternate" hreflang="ko" href={canonicalUrl} />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="MadMedCheck" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Additional SEO -->
+    <meta name="author" content="MadMedCheck" />
+    <meta name="keywords" content="피부과 추천, 성형외과 추천, 좋은 의사, 실력있는 의사, 의사 랭킹, 피부과 전문의, SCI 논문, 의료인 평가, AI 의료 검증" />
+
+    <!-- AEO: AI가 이해할 수 있는 맥락 제공 -->
+    <meta name="subject" content="의료인 객관적 평가 및 랭킹" />
+    <meta name="topic" content="피부과, 성형외과 전문의 검증 데이터" />
+    <meta name="classification" content="Healthcare, Medical Professional Rating" />
+    <meta name="coverage" content="South Korea" />
+    <meta name="rating" content="General" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -28,30 +121,44 @@ const { title, description = 'AI가 검증한 실력있는 의사 TOP 100' } = A
       rel="stylesheet"
     />
 
-    <!-- SEO / AEO -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "MadMedCheck",
-        "description": "AI 기반 의료인 검증 시스템 - 실력있는 의사 TOP 100",
-        "url": "https://madmedcheck.com"
-      }
-    </script>
+    <!-- Schema.org JSON-LD: WebSite -->
+    <script type="application/ld+json" set:html={JSON.stringify(defaultStructuredData)} />
+
+    <!-- Schema.org JSON-LD: Organization -->
+    <script type="application/ld+json" set:html={JSON.stringify(organizationData)} />
+
+    <!-- 페이지별 추가 구조화 데이터 -->
+    {structuredData && (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    )}
   </head>
-  <body class="bg-mmc-primary text-white min-h-screen font-sans">
-    <header class="border-b border-white/10 sticky top-0 bg-mmc-primary/95 backdrop-blur z-50">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2">
-          <span class="text-2xl">🏥</span>
-          <span class="font-display font-bold text-xl">
-            MAD<span class="text-mmc-accent">MED</span>CHECK
-          </span>
-        </a>
-        <nav class="flex gap-6 text-sm">
-          <a href="/" class="hover:text-mmc-accent transition">TOP 100</a>
-          <a href="/about" class="hover:text-mmc-accent transition">평가기준</a>
-        </nav>
+  <body class="bg-mmc-bg text-mmc-primary min-h-screen font-sans">
+    <!-- Header: Billboard-style clean header -->
+    <header class="bg-white border-b border-mmc-border sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between py-4">
+          <a href="/" class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-mmc-accent rounded-lg flex items-center justify-center">
+              <span class="text-white font-display font-black text-sm">M</span>
+            </div>
+            <div>
+              <span class="font-display font-black text-xl tracking-tight">
+                MADMEDCHECK
+              </span>
+              <div class="text-xs text-mmc-secondary -mt-0.5">The Doctor Chart</div>
+            </div>
+          </a>
+
+          <nav class="flex items-center gap-8">
+            <a href="/" class="text-sm font-semibold text-mmc-primary hover:text-mmc-accent transition">
+              TOP 100
+            </a>
+            <a href="/about" class="text-sm font-semibold text-mmc-secondary hover:text-mmc-accent transition">
+              평가기준
+            </a>
+          </nav>
+        </div>
       </div>
     </header>
 
@@ -59,9 +166,23 @@ const { title, description = 'AI가 검증한 실력있는 의사 TOP 100' } = A
       <slot />
     </main>
 
-    <footer class="border-t border-white/10 mt-16">
-      <div class="max-w-6xl mx-auto px-4 py-8 text-center text-white/50 text-sm">
-        <p>© 2025 MadMedCheck. 실력 있는 의료인이 소비자와 만나는 가장 정직한 길.</p>
+    <!-- Footer: Clean, minimal -->
+    <footer class="bg-mmc-surface border-t border-mmc-border mt-16">
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-mmc-primary rounded flex items-center justify-center">
+              <span class="text-white font-display font-bold text-xs">M</span>
+            </div>
+            <span class="font-display font-bold text-sm">MADMEDCHECK</span>
+          </div>
+          <p class="text-mmc-secondary text-sm text-center">
+            실력 있는 의료인이 소비자와 만나는 가장 정직한 길
+          </p>
+          <p class="text-mmc-secondary text-xs">
+            © 2025 MadMedCheck
+          </p>
+        </div>
       </div>
     </footer>
   </body>
