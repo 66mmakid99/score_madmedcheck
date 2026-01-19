@@ -1,0 +1,207 @@
+---
+// src/pages/doctor/[id].astro
+import Layout from '../../layouts/Layout.astro';
+import TierBadge from '../../components/TierBadge.astro';
+import TypeBadge from '../../components/TypeBadge.astro';
+import RadarChart from '../../components/RadarChart';
+import { getDoctorById, getAllDoctorIds } from '../../lib/supabase';
+import { TIER_INFO, TYPE_INFO } from '../../lib/types';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const ids = await getAllDoctorIds();
+  
+  // 샘플 데이터용 (DB 연결 전)
+  const sampleIds = ids.length > 0 ? ids : ['1', '2', '3'];
+  
+  return sampleIds.map((id) => ({ params: { id } }));
+}
+
+const { id } = Astro.params;
+const doctor = await getDoctorById(id);
+
+// 샘플 데이터 (DB 연결 전 테스트용)
+const sampleDoctor = doctor || {
+  id: '1',
+  hospital_name: '청담 S클리닉',
+  doctor_name: '김명의',
+  hospital_url: 'https://example.com',
+  region: '청담역',
+  specialist_type: '피부과전문의',
+  years_of_practice: 18,
+  has_fellow: true,
+  has_phd: true,
+  sci_papers_first: 4,
+  sci_papers_co: 3,
+  volume_awards: 3,
+  trainer_count: 5,
+  signature_cases: 10000,
+  has_safety_record: true,
+  kol_count: 8,
+  society_count: 4,
+  book_count: 1,
+  tier: 'Laureate' as const,
+  doctor_type: 'Hexagon' as const,
+  total_score: 520,
+  foundation_score: 86,
+  academic_score: 175,
+  clinical_score: 230,
+  reputation_score: 29,
+  verified_facts: [
+    '[학술] SCI 논문 4편 제1저자 (J Dermatol 등)',
+    '[학술] 의학박사 (서울대 의대)',
+    '[임상] 써마지 FLX 골든레코드 2023',
+    '[임상] 울쎄라 다이아몬드 2024',
+    '[임상] 라이브서저리 강연 5회',
+    '[임상] 18년 무사고 기록',
+    '[활동] 앨러간 키닥터 2020-2024',
+    '[활동] 멀츠 자문위원',
+  ],
+  consulting_comment: '모든 영역에서 균형잡힌 완전체(Hexagon) 유형입니다. 학술과 임상 모두에서 최정상급 권위를 인정받고 계십니다.',
+  radar_chart_data: { academic: 88, clinical: 92, career: 86, safety: 100, activity: 58 },
+  updated_at: '2025-01-19',
+};
+
+const tierInfo = TIER_INFO[sampleDoctor.tier];
+const typeInfo = TYPE_INFO[sampleDoctor.doctor_type];
+---
+
+<Layout title={`${sampleDoctor.doctor_name} 원장`} description={sampleDoctor.consulting_comment}>
+  <!-- 뒤로가기 -->
+  <a href="/" class="inline-flex items-center gap-1 text-white/50 hover:text-white mb-6 text-sm">
+    ← TOP 100으로 돌아가기
+  </a>
+
+  <!-- 프로필 헤더 -->
+  <section class="bg-mmc-secondary rounded-2xl p-6 md:p-8 mb-6">
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- 왼쪽: 기본 정보 -->
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-4">
+          <TierBadge tier={sampleDoctor.tier} size="lg" />
+          <TypeBadge type={sampleDoctor.doctor_type} />
+        </div>
+
+        <h1 class="text-3xl font-bold mb-1">{sampleDoctor.doctor_name} 원장</h1>
+        <p class="text-white/60">{sampleDoctor.hospital_name}</p>
+
+        <div class="flex flex-wrap gap-2 mt-4 text-sm text-white/70">
+          <span class="bg-white/10 px-3 py-1 rounded-full">{sampleDoctor.specialist_type}</span>
+          <span class="bg-white/10 px-3 py-1 rounded-full">{sampleDoctor.region}</span>
+          <span class="bg-white/10 px-3 py-1 rounded-full">경력 {sampleDoctor.years_of_practice}년</span>
+          {sampleDoctor.has_phd && <span class="bg-white/10 px-3 py-1 rounded-full">의학박사</span>}
+        </div>
+
+        <!-- 총점 -->
+        <div class="mt-6 flex items-end gap-2">
+          <span class="text-5xl font-display font-black text-mmc-accent">
+            {sampleDoctor.total_score.toLocaleString()}
+          </span>
+          <span class="text-white/40 mb-2">MMC Score</span>
+        </div>
+
+        <p class="mt-4 text-white/60 text-sm italic">"{typeInfo.tagline}"</p>
+      </div>
+
+      <!-- 오른쪽: 레이더 차트 -->
+      <div class="w-full md:w-72">
+        <RadarChart client:load data={sampleDoctor.radar_chart_data} />
+      </div>
+    </div>
+  </section>
+
+  <!-- 점수 상세 -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-mmc-secondary rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-type-guardian">{sampleDoctor.foundation_score}</div>
+      <div class="text-white/50 text-sm">Foundation</div>
+      <div class="text-white/30 text-xs">기본 자격</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-type-scholar">{sampleDoctor.academic_score}</div>
+      <div class="text-white/50 text-sm">Academic</div>
+      <div class="text-white/30 text-xs">학술 연구</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-type-maestro">{sampleDoctor.clinical_score}</div>
+      <div class="text-white/50 text-sm">Clinical</div>
+      <div class="text-white/30 text-xs">임상 시술</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-xl p-4 text-center">
+      <div class="text-2xl font-bold text-type-pioneer">{sampleDoctor.reputation_score}</div>
+      <div class="text-white/50 text-sm">Reputation</div>
+      <div class="text-white/30 text-xs">대외 활동</div>
+    </div>
+  </section>
+
+  <!-- AI 컨설팅 코멘트 -->
+  <section class="bg-gradient-to-r from-mmc-accent/20 to-transparent rounded-xl p-6 mb-6 border border-mmc-accent/30">
+    <h3 class="font-bold mb-2 flex items-center gap-2">
+      <span>🤖</span> AI 분석 코멘트
+    </h3>
+    <p class="text-white/80">{sampleDoctor.consulting_comment}</p>
+  </section>
+
+  <!-- 검증된 팩트 -->
+  <section class="bg-mmc-secondary rounded-xl p-6">
+    <h3 class="font-bold mb-4 flex items-center gap-2">
+      <span>✅</span> 검증된 이력 ({sampleDoctor.verified_facts.length}건)
+    </h3>
+    <ul class="space-y-2">
+      {sampleDoctor.verified_facts.map((fact: string) => (
+        <li class="flex items-start gap-2 text-sm">
+          <span class="text-green-400 mt-0.5">✓</span>
+          <span class="text-white/70">{fact}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- 등급/유형 설명 -->
+  <section class="grid md:grid-cols-2 gap-4 mt-6">
+    <div class="bg-mmc-secondary rounded-xl p-5">
+      <h4 class="font-semibold mb-2">
+        {tierInfo.emoji} {tierInfo.label} 등급이란?
+      </h4>
+      <p class="text-white/60 text-sm">
+        {tierInfo.label === 'Laureate' && '500점 이상. 학술과 임상 모두에서 독보적인 업적을 이룬 최고의 권위자입니다.'}
+        {tierInfo.label === 'Authority' && '350점 이상. 해당 분야의 트렌드를 주도하고 학술적 영향력이 큰 전문가입니다.'}
+        {tierInfo.label === 'Master' && '200점 이상. 풍부한 임상 경험과 검증된 학술 역량을 갖춘 숙련의입니다.'}
+        {tierInfo.label === 'Diplomate' && '100점 이상. 전문의 자격을 바탕으로 기본 이상의 역량을 검증받은 의료인입니다.'}
+      </p>
+    </div>
+    <div class="bg-mmc-secondary rounded-xl p-5">
+      <h4 class="font-semibold mb-2">
+        {typeInfo.emoji} {typeInfo.labelKo} 유형이란?
+      </h4>
+      <p class="text-white/60 text-sm">{typeInfo.tagline}</p>
+      <p class="text-white/40 text-xs mt-2">추천 대상: {
+        typeInfo.label === 'Scholar' ? '안전하고 검증된 시술을 원하는 분' :
+        typeInfo.label === 'Maestro' ? '효과와 테크닉을 중시하는 분' :
+        typeInfo.label === 'Pioneer' ? '최신 유행 시술을 원하는 분' :
+        typeInfo.label === 'Guardian' ? '평생 주치의를 찾는 분' :
+        '국내 최고 권위자를 원하는 분'
+      }</p>
+    </div>
+  </section>
+
+  <!-- JSON-LD for AEO -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Physician",
+    "name": sampleDoctor.doctor_name,
+    "medicalSpecialty": sampleDoctor.specialist_type,
+    "worksFor": {
+      "@type": "MedicalClinic",
+      "name": sampleDoctor.hospital_name,
+      "address": sampleDoctor.region
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": sampleDoctor.total_score,
+      "bestRating": 1000,
+      "worstRating": 0
+    }
+  })} />
+</Layout>

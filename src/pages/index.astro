@@ -1,0 +1,143 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import DoctorCard from '../components/DoctorCard.astro';
+import { getTop100, getStats } from '../lib/supabase';
+import { TIER_INFO } from '../lib/types';
+
+const doctors = await getTop100();
+const stats = await getStats();
+
+// 샘플 데이터 (Supabase 연결 전 테스트용)
+const sampleDoctors = doctors.length > 0 ? doctors : [
+  {
+    id: '1',
+    hospital_name: '청담 S클리닉',
+    doctor_name: '김명의',
+    region: '청담역',
+    specialist_type: '피부과전문의',
+    years_of_practice: 18,
+    tier: 'Laureate',
+    doctor_type: 'Hexagon',
+    total_score: 520,
+    foundation_score: 86,
+    academic_score: 175,
+    clinical_score: 230,
+    reputation_score: 29,
+    radar_chart_data: { academic: 88, clinical: 92, career: 86, safety: 100, activity: 58 },
+    rank: 1,
+  },
+  {
+    id: '2',
+    hospital_name: '강남 피부과',
+    doctor_name: '이실장',
+    region: '강남역',
+    specialist_type: '일반의',
+    years_of_practice: 15,
+    tier: 'Master',
+    doctor_type: 'Maestro',
+    total_score: 305,
+    foundation_score: 40,
+    academic_score: 0,
+    clinical_score: 250,
+    reputation_score: 15,
+    radar_chart_data: { academic: 0, clinical: 100, career: 40, safety: 100, activity: 30 },
+    rank: 2,
+  },
+  {
+    id: '3',
+    hospital_name: '신사 더마클리닉',
+    doctor_name: '박교수',
+    region: '신사역',
+    specialist_type: '피부과전문의',
+    years_of_practice: 12,
+    tier: 'Authority',
+    doctor_type: 'Scholar',
+    total_score: 380,
+    foundation_score: 74,
+    academic_score: 195,
+    clinical_score: 80,
+    reputation_score: 31,
+    radar_chart_data: { academic: 98, clinical: 32, career: 74, safety: 50, activity: 62 },
+    rank: 3,
+  },
+];
+---
+
+<Layout title="TOP 100 의사 랭킹">
+  <!-- Hero -->
+  <section class="text-center py-12">
+    <h1 class="text-4xl md:text-5xl font-display font-black mb-4">
+      실력으로 검증된<br />
+      <span class="text-mmc-accent">TOP 100</span> 의사
+    </h1>
+    <p class="text-white/60 max-w-xl mx-auto">
+      마케팅이 아닌 실력으로 평가합니다.<br />
+      학술 논문, 시술 볼륨, 동료 평가 등 객관적 데이터만 반영합니다.
+    </p>
+  </section>
+
+  <!-- Stats -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
+      <div class="text-2xl font-display font-bold">{stats.total || sampleDoctors.length}</div>
+      <div class="text-white/50 text-sm">검증된 의사</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
+      <div class="text-2xl font-display font-bold text-tier-laureate">
+        {stats.tierCounts?.Laureate || 1}
+      </div>
+      <div class="text-white/50 text-sm">Laureate</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
+      <div class="text-2xl font-display font-bold">{stats.avgScore || 335}</div>
+      <div class="text-white/50 text-sm">평균 점수</div>
+    </div>
+    <div class="bg-mmc-secondary rounded-lg p-4 text-center">
+      <div class="text-2xl font-display font-bold">주간</div>
+      <div class="text-white/50 text-sm">업데이트 주기</div>
+    </div>
+  </section>
+
+  <!-- 등급 가이드 -->
+  <section class="flex flex-wrap justify-center gap-3 mb-8">
+    {Object.entries(TIER_INFO).map(([tier, info]) => (
+      <div class="flex items-center gap-2 text-sm text-white/60">
+        <span>{info.emoji}</span>
+        <span class={`text-${info.color}`}>{info.label}</span>
+        <span>({info.labelKo})</span>
+      </div>
+    ))}
+  </section>
+
+  <!-- Doctor List -->
+  <section>
+    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+      <span>🏆</span> TOP 100 랭킹
+    </h2>
+
+    <div class="space-y-3">
+      {sampleDoctors.map((doctor) => (
+        <DoctorCard doctor={doctor} />
+      ))}
+    </div>
+
+    {sampleDoctors.length === 0 && (
+      <div class="text-center py-20 text-white/40">
+        <p>데이터를 불러오는 중...</p>
+      </div>
+    )}
+  </section>
+
+  <!-- CTA -->
+  <section class="mt-16 text-center bg-mmc-secondary rounded-2xl p-8">
+    <h3 class="text-xl font-bold mb-2">의사이신가요?</h3>
+    <p class="text-white/60 mb-4">객관적 데이터를 제출하고 검증받으세요.</p>
+    <a
+      href="/for-doctors"
+      class="inline-block bg-mmc-accent text-white px-6 py-2 rounded-full font-semibold hover:bg-mmc-accent/80 transition"
+    >
+      데이터 제출하기
+    </a>
+  </section>
+</Layout>

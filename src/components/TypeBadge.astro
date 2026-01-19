@@ -1,0 +1,25 @@
+---
+// src/components/TypeBadge.astro
+import type { DoctorType } from '../lib/types';
+import { TYPE_INFO } from '../lib/types';
+
+interface Props {
+  type: DoctorType;
+}
+
+const { type } = Astro.props;
+const info = TYPE_INFO[type];
+
+const colorClass = {
+  Scholar: 'border-type-scholar text-type-scholar',
+  Maestro: 'border-type-maestro text-type-maestro',
+  Pioneer: 'border-type-pioneer text-type-pioneer',
+  Guardian: 'border-type-guardian text-type-guardian',
+  Hexagon: 'border-type-hexagon text-type-hexagon',
+}[type];
+---
+
+<span class={`inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full border ${colorClass}`}>
+  <span>{info.emoji}</span>
+  <span>{info.labelKo}</span>
+</span>

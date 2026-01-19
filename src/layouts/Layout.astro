@@ -1,0 +1,77 @@
+---
+// src/layouts/Layout.astro
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'AI가 검증한 실력있는 의사 TOP 100' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | MadMedCheck</title>
+    <meta name="description" content={description} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- SEO / AEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "MadMedCheck",
+        "description": "AI 기반 의료인 검증 시스템 - 실력있는 의사 TOP 100",
+        "url": "https://madmedcheck.com"
+      }
+    </script>
+  </head>
+  <body class="bg-mmc-primary text-white min-h-screen font-sans">
+    <header class="border-b border-white/10 sticky top-0 bg-mmc-primary/95 backdrop-blur z-50">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2">
+          <span class="text-2xl">🏥</span>
+          <span class="font-display font-bold text-xl">
+            MAD<span class="text-mmc-accent">MED</span>CHECK
+          </span>
+        </a>
+        <nav class="flex gap-6 text-sm">
+          <a href="/" class="hover:text-mmc-accent transition">TOP 100</a>
+          <a href="/about" class="hover:text-mmc-accent transition">평가기준</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <slot />
+    </main>
+
+    <footer class="border-t border-white/10 mt-16">
+      <div class="max-w-6xl mx-auto px-4 py-8 text-center text-white/50 text-sm">
+        <p>© 2025 MadMedCheck. 실력 있는 의료인이 소비자와 만나는 가장 정직한 길.</p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  body {
+    font-family: 'Pretendard', system-ui, sans-serif;
+  }
+  .font-display {
+    font-family: 'Montserrat', sans-serif;
+  }
+</style>

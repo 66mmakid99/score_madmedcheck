@@ -1,0 +1,31 @@
+---
+// src/components/TierBadge.astro
+import type { Tier } from '../lib/types';
+import { TIER_INFO } from '../lib/types';
+
+interface Props {
+  tier: Tier;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { tier, size = 'md' } = Astro.props;
+const info = TIER_INFO[tier];
+
+const sizeClass = {
+  sm: 'text-xs px-2 py-0.5',
+  md: 'text-sm px-3 py-1',
+  lg: 'text-base px-4 py-1.5',
+}[size];
+
+const colorClass = {
+  Laureate: 'bg-tier-laureate text-black shadow-[0_0_12px_rgba(255,215,0,0.6)]',
+  Authority: 'bg-tier-authority text-white',
+  Master: 'bg-tier-master text-white',
+  Diplomate: 'bg-tier-diplomate text-white',
+}[tier];
+---
+
+<span class={`inline-flex items-center gap-1 rounded-full font-semibold ${sizeClass} ${colorClass}`}>
+  <span>{info.emoji}</span>
+  <span>{info.label}</span>
+</span>

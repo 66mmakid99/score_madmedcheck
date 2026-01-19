@@ -1,0 +1,61 @@
+---
+// src/components/DoctorCard.astro
+import type { Doctor } from '../lib/types';
+import TierBadge from './TierBadge.astro';
+import TypeBadge from './TypeBadge.astro';
+
+interface Props {
+  doctor: Doctor;
+  showRank?: boolean;
+}
+
+const { doctor, showRank = true } = Astro.props;
+
+const rankStyle = {
+  1: 'text-tier-laureate text-4xl',
+  2: 'text-gray-300 text-3xl',
+  3: 'text-amber-600 text-3xl',
+}[doctor.rank || 0] || 'text-white/60 text-2xl';
+---
+
+<a
+  href={`/doctor/${doctor.id}`}
+  class="block bg-mmc-secondary rounded-xl p-5 hover:bg-mmc-secondary/80 transition border border-white/5 hover:border-white/10"
+>
+  <div class="flex items-start gap-4">
+    {showRank && doctor.rank && (
+      <div class={`font-display font-black w-12 text-center ${rankStyle}`}>
+        {doctor.rank}
+      </div>
+    )}
+
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1">
+        <TierBadge tier={doctor.tier} size="sm" />
+        <TypeBadge type={doctor.doctor_type} />
+      </div>
+
+      <h3 class="font-bold text-lg truncate">
+        {doctor.doctor_name || '원장'}
+        <span class="text-white/50 font-normal text-sm ml-2">{doctor.hospital_name}</span>
+      </h3>
+
+      <p class="text-white/60 text-sm mt-1">
+        {doctor.specialist_type} · {doctor.region} · 경력 {doctor.years_of_practice}년
+      </p>
+
+      <div class="flex items-center gap-4 mt-3 text-xs text-white/50">
+        <span>📚 학술 {doctor.academic_score}</span>
+        <span>🖐️ 임상 {doctor.clinical_score}</span>
+        <span>🏅 경력 {doctor.foundation_score}</span>
+      </div>
+    </div>
+
+    <div class="text-right">
+      <div class="text-3xl font-display font-black text-mmc-accent">
+        {doctor.total_score.toLocaleString()}
+      </div>
+      <div class="text-xs text-white/40">MMC Score</div>
+    </div>
+  </div>
+</a>
