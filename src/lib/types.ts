@@ -55,6 +55,13 @@ export interface Doctor {
   technology_keywords: string[]; // 기술 키워드
   mechanism_keywords: string[]; // 기전 키워드
 
+  // 확장된 클리닉 프로파일
+  clinic_positioning: ClinicPositioning | null; // 클리닉 포지셔닝
+  service_portfolio: ServiceCategory[]; // 서비스 포트폴리오
+  signature_programs: SignatureProgram[]; // 시그니처 프로그램
+  target_segments: string[]; // 타겟 고객층
+  medical_tourism_summary: MedicalTourismSummary | null; // 의료관광 요약
+
   updated_at: string;
   rank?: number;
 }
@@ -80,6 +87,33 @@ export interface SpecialtyCategory {
   label: string;
   confidence: number;
   keywords: string[];
+}
+
+// 확장된 클리닉 프로파일 타입
+export interface ClinicPositioning {
+  philosophy: string;
+  concept: string;
+  differentiators: string[];
+}
+
+export interface ServiceCategory {
+  category: string;
+  categoryEn: string;
+  services: string[];
+  featured: boolean;
+}
+
+export interface SignatureProgram {
+  name: string;
+  description: string;
+  targetConcerns: string[];
+}
+
+export interface MedicalTourismSummary {
+  headline: string;
+  expertise: string[];
+  uniqueSellingPoints: string[];
+  recommendedFor: string[];
 }
 
 export const TIER_INFO: Record<Tier, { label: string; labelKo: string; color: string; emoji: string }> = {

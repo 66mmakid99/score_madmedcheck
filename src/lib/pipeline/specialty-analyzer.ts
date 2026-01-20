@@ -387,6 +387,41 @@ export interface SpecialtyProfile {
 
   // 영문 태그라인
   taglineEn: string;
+
+  // ============ 확장된 클리닉 프로파일 (의료관광용) ============
+
+  // 클리닉 포지셔닝/철학
+  clinicPositioning: {
+    philosophy: string; // 진료 철학 (예: "정확한 진단 기반 근본 치료")
+    concept: string; // 핵심 컨셉 (예: "토탈 스킨케어 & 안티에이징")
+    differentiators: string[]; // 차별화 포인트 (예: ["오리지널 수입 레이저", "의사 직접 시술"])
+  };
+
+  // 서비스 포트폴리오
+  servicePortfolio: Array<{
+    category: string; // 예: "안티에이징/리프팅"
+    categoryEn: string; // 예: "Anti-aging / Lifting"
+    services: string[]; // 해당 카테고리 시술 목록
+    featured: boolean; // 주력 카테고리 여부
+  }>;
+
+  // 시그니처 프로그램/패키지
+  signaturePrograms: Array<{
+    name: string; // 예: "Signature Solution by Audrey"
+    description: string; // 설명
+    targetConcerns: string[]; // 대상 고민 (예: ["기미", "주름", "탄력"])
+  }>;
+
+  // 타겟 고객 세그먼트
+  targetSegments: string[]; // 예: ["안티에이징 관심 30-50대", "피부 트러블 고민"]
+
+  // 의료관광 고객용 종합 요약 (영문)
+  medicalTourismSummary: {
+    headline: string; // 영문 헤드라인
+    expertise: string[]; // 전문 분야 (영문)
+    uniqueSellingPoints: string[]; // USP (영문)
+    recommendedFor: string[]; // 추천 대상 (영문)
+  };
 }
 
 // ============================================
@@ -541,16 +576,44 @@ function inferSpecialtiesFromEquipment(
 }
 
 /**
- * Claude를 사용한 전문분야 상세 분석
+ * Claude를 사용한 종합 클리닉 프로파일 분석
+ * 의료관광 고객을 위한 상세한 클리닉 정보 추출
  */
-export async function analyzeSpecialtyWithAI(
+export async function analyzeClinicProfileWithAI(
   scrapedContent: string,
   doctorName: string | null,
   hospitalName: string,
   kolInfo: Array<{ product: string; technologies: string[]; mechanisms: string[] }>,
   equipment: Array<{ device: string; technologies: string[]; mechanisms: string[] }>,
   anthropicApiKey: string
-): Promise<{ tagline: string; taglineEn: string; additionalSpecialties: string[] }> {
+): Promise<{
+  tagline: string;
+  taglineEn: string;
+  additionalSpecialties: string[];
+  clinicPositioning: {
+    philosophy: string;
+    concept: string;
+    differentiators: string[];
+  };
+  servicePortfolio: Array<{
+    category: string;
+    categoryEn: string;
+    services: string[];
+    featured: boolean;
+  }>;
+  signaturePrograms: Array<{
+    name: string;
+    description: string;
+    targetConcerns: string[];
+  }>;
+  targetSegments: string[];
+  medicalTourismSummary: {
+    headline: string;
+    expertise: string[];
+    uniqueSellingPoints: string[];
+    recommendedFor: string[];
+  };
+}> {
   const client = new Anthropic({ apiKey: anthropicApiKey });
 
   const equipmentSummary = equipment.map((e) => `${e.device}: ${e.mechanisms.join(', ')}`).join('\n');
@@ -559,36 +622,72 @@ export async function analyzeSpecialtyWithAI(
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
+      max_tokens: 2000,
       messages: [
         {
           role: 'user',
-          content: `의사의 전문 시술분야를 분석하여 의료관광 고객용 소개 문구를 작성해주세요.
+          content: `당신은 의료관광 컨설턴트입니다. 아래 클리닉 정보를 분석하여 해외 환자(특히 영어권, 일본, 중국)에게 제공할 상세한 클리닉 프로파일을 작성해주세요.
 
-의사/병원 정보:
-- 이름: ${doctorName || '원장'}
-- 병원: ${hospitalName}
+=== 클리닉 정보 ===
+의사/원장: ${doctorName || '미확인'}
+병원명: ${hospitalName}
 
-KOL/키닥터 정보:
-${kolSummary || '없음'}
+KOL/키닥터 인증:
+${kolSummary || '정보 없음'}
 
-보유 장비 분석:
-${equipmentSummary || '없음'}
+보유 장비:
+${equipmentSummary || '정보 없음'}
 
-홈페이지 내용 일부:
-${scrapedContent.slice(0, 1500)}
+=== 홈페이지 콘텐츠 ===
+${scrapedContent.slice(0, 3000)}
 
-다음 JSON 형식으로 응답해주세요:
+=== 분석 요청 ===
+다음 JSON 형식으로 상세히 분석해주세요:
+
 {
-  "tagline": "한글 태그라인 (예: 리프팅/타이트닝 전문가, 울쎄라/써마지 명의)",
-  "taglineEn": "English tagline (e.g., Lifting & Tightening Specialist)",
-  "additionalSpecialties": ["추가로 발견된 전문분야 키워드들"]
+  "tagline": "한글 전문분야 태그라인 (15자 이내, 예: 리프팅/타이트닝 명의)",
+  "taglineEn": "English specialty tagline (e.g., Lifting & Tightening Expert)",
+  "additionalSpecialties": ["추가 발견된 전문분야"],
+
+  "clinicPositioning": {
+    "philosophy": "클리닉의 진료 철학 (예: 정확한 진단 기반 맞춤 치료)",
+    "concept": "핵심 컨셉 (예: 토탈 스킨케어 & 안티에이징 솔루션)",
+    "differentiators": ["차별화 포인트 1", "차별화 포인트 2", "차별화 포인트 3"]
+  },
+
+  "servicePortfolio": [
+    {
+      "category": "카테고리명 (예: 리프팅/안티에이징)",
+      "categoryEn": "English category (e.g., Lifting / Anti-aging)",
+      "services": ["시술1", "시술2", "시술3"],
+      "featured": true
+    }
+  ],
+
+  "signaturePrograms": [
+    {
+      "name": "시그니처 프로그램명",
+      "description": "프로그램 설명",
+      "targetConcerns": ["대상 고민1", "대상 고민2"]
+    }
+  ],
+
+  "targetSegments": ["타겟 고객층 1", "타겟 고객층 2"],
+
+  "medicalTourismSummary": {
+    "headline": "One-line headline for international patients",
+    "expertise": ["Expertise 1", "Expertise 2", "Expertise 3"],
+    "uniqueSellingPoints": ["USP 1", "USP 2"],
+    "recommendedFor": ["Ideal for patients seeking...", "Best for..."]
+  }
 }
 
-주의:
-- 태그라인은 15자 이내로 간결하게
-- 핵심 시술분야 2-3가지를 포함
-- KOL 제품이 있으면 우선 반영`,
+분석 시 유의사항:
+1. 홈페이지에서 강조하는 키워드와 문구를 반영
+2. 장비 구성에서 주력 시술 분야를 추론
+3. KOL 인증이 있으면 해당 분야 전문성 강조
+4. 의료관광 고객에게 어필할 수 있는 포인트 부각
+5. 서비스 포트폴리오는 주력 분야(featured=true)를 먼저 배치`,
         },
       ],
     });
@@ -605,9 +704,9 @@ ${scrapedContent.slice(0, 1500)}
 
     return JSON.parse(jsonMatch[0]);
   } catch (error) {
-    console.error('  ⚠️ AI 전문분야 분석 오류:', error);
+    console.error('  ⚠️ AI 클리닉 프로파일 분석 오류:', error);
 
-    // 폴백: 기본 태그라인 생성
+    // 폴백: 기본 데이터 생성
     const topMechanisms = [...new Set(equipment.flatMap((e) => e.mechanisms))].slice(0, 3);
     const fallbackTagline = topMechanisms.length > 0 ? `${topMechanisms.join('/')} 전문` : '피부과 전문의';
 
@@ -615,12 +714,27 @@ ${scrapedContent.slice(0, 1500)}
       tagline: fallbackTagline,
       taglineEn: 'Dermatology Specialist',
       additionalSpecialties: [],
+      clinicPositioning: {
+        philosophy: '전문적인 의료 서비스 제공',
+        concept: '피부과 전문 클리닉',
+        differentiators: [],
+      },
+      servicePortfolio: [],
+      signaturePrograms: [],
+      targetSegments: [],
+      medicalTourismSummary: {
+        headline: `${hospitalName} - Professional Dermatology Clinic`,
+        expertise: topMechanisms.length > 0 ? topMechanisms : ['Dermatology'],
+        uniqueSellingPoints: [],
+        recommendedFor: [],
+      },
     };
   }
 }
 
 /**
- * 메인 전문분야 분석 함수
+ * 메인 전문분야 분석 함수 (확장 버전)
+ * 의료관광 고객을 위한 종합적인 클리닉 프로파일 생성
  */
 export async function analyzeSpecialtyProfile(
   scrapedContent: string,
@@ -650,15 +764,16 @@ export async function analyzeSpecialtyProfile(
   const kolProducts = extractKolInfo(scrapedContent);
   console.log(`  🏆 KOL 제품: ${kolProducts.length}개`);
 
-  // 4. 전문분야 추론
+  // 4. 전문분야 추론 (장비 기반)
   const specialties = inferSpecialtiesFromEquipment(equipment);
 
   // 5. 기술/기전 키워드 통합
   const technologyKeywords = [...new Set(equipment.flatMap((e) => e.technologies))];
   const mechanismKeywords = [...new Set(equipment.flatMap((e) => e.mechanisms))];
 
-  // 6. AI로 태그라인 생성
-  const aiResult = await analyzeSpecialtyWithAI(
+  // 6. AI로 종합 클리닉 프로파일 분석
+  console.log(`  🤖 AI 종합 분석 중...`);
+  const aiResult = await analyzeClinicProfileWithAI(
     scrapedContent,
     doctorName,
     hospitalName,
@@ -668,8 +783,11 @@ export async function analyzeSpecialtyProfile(
   );
 
   console.log(`  ✅ 전문분야 분석 완료: ${aiResult.tagline}`);
+  console.log(`  📌 클리닉 컨셉: ${aiResult.clinicPositioning?.concept || '미확인'}`);
+  console.log(`  🎯 서비스 카테고리: ${aiResult.servicePortfolio?.length || 0}개`);
 
   return {
+    // 기본 정보
     kolProducts,
     equipment,
     specialties,
@@ -677,5 +795,21 @@ export async function analyzeSpecialtyProfile(
     mechanismKeywords,
     tagline: aiResult.tagline,
     taglineEn: aiResult.taglineEn,
+
+    // 확장 클리닉 프로파일
+    clinicPositioning: aiResult.clinicPositioning || {
+      philosophy: '',
+      concept: '',
+      differentiators: [],
+    },
+    servicePortfolio: aiResult.servicePortfolio || [],
+    signaturePrograms: aiResult.signaturePrograms || [],
+    targetSegments: aiResult.targetSegments || [],
+    medicalTourismSummary: aiResult.medicalTourismSummary || {
+      headline: '',
+      expertise: [],
+      uniqueSellingPoints: [],
+      recommendedFor: [],
+    },
   };
 }

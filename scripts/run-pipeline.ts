@@ -84,6 +84,12 @@ interface DoctorData {
   specialty_categories: string;
   technology_keywords: string;
   mechanism_keywords: string;
+  // 확장 클리닉 프로파일
+  clinic_positioning: string;
+  service_portfolio: string;
+  signature_programs: string;
+  target_segments: string;
+  medical_tourism_summary: string;
 }
 
 // SQL INSERT 문 생성
@@ -100,6 +106,7 @@ function generateInsertSQL(doctor: DoctorData): string {
     tier, doctor_type, verified_facts, radar_chart_data, consulting_comment,
     specialty_tagline, specialty_tagline_en, kol_products, equipment_list,
     specialty_categories, technology_keywords, mechanism_keywords,
+    clinic_positioning, service_portfolio, signature_programs, target_segments, medical_tourism_summary,
     crawl_status, updated_at
   ) VALUES (
     ${escapeSql(doctor.hospital_name)},
@@ -139,6 +146,11 @@ function generateInsertSQL(doctor: DoctorData): string {
     ${escapeSql(doctor.specialty_categories)},
     ${escapeSql(doctor.technology_keywords)},
     ${escapeSql(doctor.mechanism_keywords)},
+    ${escapeSql(doctor.clinic_positioning)},
+    ${escapeSql(doctor.service_portfolio)},
+    ${escapeSql(doctor.signature_programs)},
+    ${escapeSql(doctor.target_segments)},
+    ${escapeSql(doctor.medical_tourism_summary)},
     'completed',
     datetime('now')
   );`;
@@ -296,6 +308,12 @@ async function processHospital(
       specialty_categories: JSON.stringify(specialtyProfile.specialties),
       technology_keywords: JSON.stringify(specialtyProfile.technologyKeywords),
       mechanism_keywords: JSON.stringify(specialtyProfile.mechanismKeywords),
+      // 확장 클리닉 프로파일
+      clinic_positioning: JSON.stringify(specialtyProfile.clinicPositioning),
+      service_portfolio: JSON.stringify(specialtyProfile.servicePortfolio),
+      signature_programs: JSON.stringify(specialtyProfile.signaturePrograms),
+      target_segments: JSON.stringify(specialtyProfile.targetSegments),
+      medical_tourism_summary: JSON.stringify(specialtyProfile.medicalTourismSummary),
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

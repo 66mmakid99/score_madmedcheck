@@ -79,6 +79,12 @@ function rowToDoctor(row: Record<string, unknown>, rank?: number): Doctor {
     specialty_categories: parseJSON(row.specialty_categories, []),
     technology_keywords: parseJSON(row.technology_keywords, []),
     mechanism_keywords: parseJSON(row.mechanism_keywords, []),
+    // 확장 클리닉 프로파일
+    clinic_positioning: parseJSON(row.clinic_positioning, null),
+    service_portfolio: parseJSON(row.service_portfolio, []),
+    signature_programs: parseJSON(row.signature_programs, []),
+    target_segments: parseJSON(row.target_segments, []),
+    medical_tourism_summary: parseJSON(row.medical_tourism_summary, null),
     updated_at: String(row.updated_at || ''),
     rank,
   };
@@ -472,6 +478,26 @@ function getSampleDoctors(): Doctor[] {
       ],
       technology_keywords: ['HIFU', '고주파', 'RF', '피코레이저'],
       mechanism_keywords: ['리프팅', '타이트닝', '콜라겐 리모델링', '색소 치료'],
+      // 확장 클리닉 프로파일
+      clinic_positioning: {
+        philosophy: '정확한 진단을 통한 맞춤형 안티에이징 솔루션',
+        concept: '토탈 리프팅 & 안티에이징 전문',
+        differentiators: ['오리지널 수입 장비', '의사 직접 시술', '18년 임상 경험'],
+      },
+      service_portfolio: [
+        { category: '리프팅/타이트닝', categoryEn: 'Lifting & Tightening', services: ['써마지FLX', '울쎄라', '슈링크'], featured: true },
+        { category: '레이저 토닝', categoryEn: 'Laser Toning', services: ['피코슈어', '레블라이트'], featured: false },
+      ],
+      signature_programs: [
+        { name: 'S클리닉 시그니처 리프팅', description: '써마지+울쎄라 복합 프로그램', targetConcerns: ['처진 피부', '주름', '탄력 저하'] },
+      ],
+      target_segments: ['안티에이징 관심 30-50대', '비수술 리프팅 선호 고객'],
+      medical_tourism_summary: {
+        headline: 'Premium Non-surgical Lifting Expert in Cheongdam',
+        expertise: ['Thermage FLX', 'Ulthera', 'Non-surgical Facelift'],
+        uniqueSellingPoints: ['18 years of experience', 'KOL for Thermage & Ulthera', 'Direct treatment by specialist'],
+        recommendedFor: ['Patients seeking non-surgical lifting', 'Those wanting natural anti-aging results'],
+      },
       updated_at: new Date().toISOString(),
       rank: 1,
     },
@@ -527,6 +553,27 @@ function getSampleDoctors(): Doctor[] {
       ],
       technology_keywords: ['HA 필러', '보툴리눔 톡신', 'HIFU', '고주파'],
       mechanism_keywords: ['볼륨', '윤곽 성형', '주름 개선', '리프팅'],
+      // 확장 클리닉 프로파일
+      clinic_positioning: {
+        philosophy: '자연스러운 아름다움을 위한 섬세한 시술',
+        concept: '필러 & 보톡스 명인',
+        differentiators: ['15년 무사고 기록', '자연스러운 결과', '맞춤형 디자인'],
+      },
+      service_portfolio: [
+        { category: '필러/볼륨', categoryEn: 'Filler & Volume', services: ['쥬비덤', '레스틸렌', '볼류마'], featured: true },
+        { category: '보톡스/주름', categoryEn: 'Botox & Wrinkle', services: ['보톡스', '디스포트', '제오민'], featured: true },
+        { category: '리프팅', categoryEn: 'Lifting', services: ['써마지', '울쎄라'], featured: false },
+      ],
+      signature_programs: [
+        { name: '마에스트로 필러 디자인', description: '개인 맞춤형 얼굴 윤곽 설계', targetConcerns: ['볼륨 부족', '윤곽선', '팔자주름'] },
+      ],
+      target_segments: ['자연스러운 변화 원하는 20-40대', '처음 시술하는 초보 고객'],
+      medical_tourism_summary: {
+        headline: 'Natural Filler & Botox Maestro in Gangnam',
+        expertise: ['Juvederm Filler', 'Botox', 'Facial Contouring'],
+        uniqueSellingPoints: ['15 years accident-free record', 'Natural-looking results'],
+        recommendedFor: ['First-time patients', 'Those seeking subtle enhancement'],
+      },
       updated_at: new Date().toISOString(),
       rank: 2,
     },
@@ -582,6 +629,27 @@ function getSampleDoctors(): Doctor[] {
       ],
       technology_keywords: ['프락셔널 레이저', '마이크로니들 RF', 'PDRN'],
       mechanism_keywords: ['피부 재생', '흉터 치료', '모공', '탄력'],
+      // 확장 클리닉 프로파일
+      clinic_positioning: {
+        philosophy: '과학적 근거에 기반한 피부 재생 치료',
+        concept: '학술 기반 피부재생 & 흉터 전문',
+        differentiators: ['SCI 논문 6편', '의학박사', '학회 임원 활동'],
+      },
+      service_portfolio: [
+        { category: '피부재생/흉터', categoryEn: 'Skin Regeneration & Scar', services: ['프락셀', '지니어스', '마이크로니들'], featured: true },
+        { category: '스킨부스터', categoryEn: 'Skin Boosters', services: ['리쥬란', '쥬베룩'], featured: true },
+        { category: '모공/여드름', categoryEn: 'Pore & Acne', services: ['CO2 레이저', '화학 박피'], featured: false },
+      ],
+      signature_programs: [
+        { name: '스칼라 재생 프로그램', description: '과학적 프로토콜 기반 흉터 집중 치료', targetConcerns: ['여드름 흉터', '수술 흉터', '모공'] },
+      ],
+      target_segments: ['흉터 고민 환자', '과학적 치료 선호 고객', '학술적 근거 중시하는 환자'],
+      medical_tourism_summary: {
+        headline: 'Research-based Skin Regeneration Specialist in Sinsa',
+        expertise: ['Acne Scar Treatment', 'Fraxel Laser', 'Skin Regeneration'],
+        uniqueSellingPoints: ['6 SCI publications', 'PhD in Medicine', 'Evidence-based approach'],
+        recommendedFor: ['Patients with stubborn scars', 'Those seeking scientific treatment protocols'],
+      },
       updated_at: new Date().toISOString(),
       rank: 3,
     },

@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS doctors (
   technology_keywords TEXT DEFAULT '[]', -- 기술 키워드 (JSON)
   mechanism_keywords TEXT DEFAULT '[]', -- 기전 키워드 (JSON)
 
+  -- 확장 클리닉 프로파일 (의료관광 고객용)
+  clinic_positioning TEXT DEFAULT '{}', -- 클리닉 포지셔닝/철학 (JSON)
+  service_portfolio TEXT DEFAULT '[]', -- 서비스 포트폴리오 (JSON)
+  signature_programs TEXT DEFAULT '[]', -- 시그니처 프로그램 (JSON)
+  target_segments TEXT DEFAULT '[]', -- 타겟 고객층 (JSON)
+  medical_tourism_summary TEXT DEFAULT '{}', -- 의료관광 요약 (JSON)
+
   -- 메타데이터
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
