@@ -1,8 +1,17 @@
 // src/lib/pipeline/claude-analyzer.ts
 // Claude API를 사용한 팩트 추출 및 분석
+// 하이브리드 전략: Haiku(단순 추출) + Sonnet(복잡한 분석)
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { DoctorType, Tier } from '../types';
+
+// 모델 선택 전략
+const MODELS = {
+  // 단순 구조화 작업 - Haiku (빠르고 저렴)
+  extraction: 'claude-3-5-haiku-20241022',
+  // 복잡한 분석/창작 - Sonnet (정확하고 뉘앙스 파악)
+  analysis: 'claude-3-5-sonnet-20241022',
+} as const;
 
 export interface ExtractedFacts {
   // 기본 정보
@@ -87,8 +96,9 @@ export async function extractFacts(
 ): Promise<ExtractedFacts> {
   const client = new Anthropic({ apiKey });
 
+  // Haiku 사용 - 구조화된 팩트 추출은 단순 작업
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: MODELS.extraction,
     max_tokens: 2000,
     messages: [
       {
@@ -189,8 +199,9 @@ ${facts.verifiedFacts.join('\n')}
 
 코멘트만 출력하세요.`;
 
+  // Sonnet 사용 - 코멘트 생성은 뉘앙스/창작 필요
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: MODELS.analysis,
     max_tokens: 200,
     messages: [{ role: 'user', content: prompt }],
   });

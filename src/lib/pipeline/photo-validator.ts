@@ -1,7 +1,11 @@
 // src/lib/pipeline/photo-validator.ts
 // AI 기반 의사 사진 교차검증 모듈
+// Vision 작업은 복잡한 분석이므로 Sonnet 사용
 
 import Anthropic from '@anthropic-ai/sdk';
+
+// 모델 선택 (Vision 작업은 Sonnet 필요)
+const MODEL_VISION = 'claude-3-5-sonnet-20241022';
 
 interface PhotoValidationResult {
   isValid: boolean;
@@ -69,7 +73,7 @@ async function validateSinglePhoto(
     }
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: MODEL_VISION,
       max_tokens: 500,
       messages: [
         {
@@ -176,7 +180,7 @@ async function crossValidatePhotos(
     }
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: MODEL_VISION,
       max_tokens: 800,
       messages: [
         {
