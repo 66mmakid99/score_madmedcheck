@@ -45,8 +45,41 @@ export interface Doctor {
   verified_facts: string[];
   radar_chart_data: { academic: number; clinical: number; career: number; safety: number; activity: number };
   consulting_comment: string;
+
+  // 전문분야 프로파일 (의료관광용)
+  specialty_tagline: string | null; // 한줄 소개 (예: "리프팅/타이트닝 전문가")
+  specialty_tagline_en: string | null; // 영문 소개 (예: "Lifting & Tightening Specialist")
+  kol_products: KolProduct[]; // KOL 제품 목록
+  equipment_list: EquipmentItem[]; // 보유 장비 목록
+  specialty_categories: SpecialtyCategory[]; // 전문분야 카테고리
+  technology_keywords: string[]; // 기술 키워드
+  mechanism_keywords: string[]; // 기전 키워드
+
   updated_at: string;
   rank?: number;
+}
+
+// 전문분야 관련 타입
+export interface KolProduct {
+  product: string;
+  year?: number;
+  technologies: string[];
+  mechanisms: string[];
+}
+
+export interface EquipmentItem {
+  device: string;
+  brand: string;
+  technologies: string[];
+  mechanisms: string[];
+  category: string;
+}
+
+export interface SpecialtyCategory {
+  category: string;
+  label: string;
+  confidence: number;
+  keywords: string[];
 }
 
 export const TIER_INFO: Record<Tier, { label: string; labelKo: string; color: string; emoji: string }> = {

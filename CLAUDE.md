@@ -34,6 +34,7 @@
 - [x] **의사 프로필 사진 추출** (웹사이트 + 구글 이미지)
 - [x] **AI 교차검증** (Claude Vision으로 동일 인물 확인)
 - [x] **배경 제거 + 그라데이션 합성** (Remove.bg + Sharp)
+- [x] **전문분야 프로파일링** (의료관광용 - KOL/장비 기반 분석)
 
 ## 다음 할 일 (우선순위)
 1. **D1 데이터베이스 초기화**
@@ -71,7 +72,8 @@ src/
 │       ├── conference-crawler.ts # 학회 크롤러
 │       ├── image-extractor.ts # 의사 사진 추출
 │       ├── photo-validator.ts # AI 사진 교차검증
-│       └── image-processor.ts # 배경 제거 + 합성
+│       ├── image-processor.ts # 배경 제거 + 합성
+│       └── specialty-analyzer.ts # 전문분야 분석 (의료관광용)
 d1-schema.sql                # D1 SQLite 스키마
 wrangler.toml                # Cloudflare 설정
 ```

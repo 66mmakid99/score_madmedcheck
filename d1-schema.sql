@@ -52,6 +52,15 @@ CREATE TABLE IF NOT EXISTS doctors (
   radar_chart_data TEXT DEFAULT '{"academic":0,"clinical":0,"career":0,"safety":0,"activity":0}',
   consulting_comment TEXT,
 
+  -- 전문분야 프로파일 (의료관광용)
+  specialty_tagline TEXT, -- 한줄 소개 (예: "리프팅/타이트닝 전문가")
+  specialty_tagline_en TEXT, -- 영문 소개 (예: "Lifting & Tightening Specialist")
+  kol_products TEXT DEFAULT '[]', -- KOL 제품 목록 (JSON)
+  equipment_list TEXT DEFAULT '[]', -- 보유 장비 목록 (JSON)
+  specialty_categories TEXT DEFAULT '[]', -- 전문분야 카테고리 (JSON)
+  technology_keywords TEXT DEFAULT '[]', -- 기술 키워드 (JSON)
+  mechanism_keywords TEXT DEFAULT '[]', -- 기전 키워드 (JSON)
+
   -- 메타데이터
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),

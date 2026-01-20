@@ -9,6 +9,7 @@ import { analyzeDoctor } from '../src/lib/pipeline/scoring';
 import { extractDoctorPhotoFromMarkdown, searchDoctorPhotos } from '../src/lib/pipeline/image-extractor';
 import { collectAndValidatePhoto } from '../src/lib/pipeline/photo-validator';
 import { enhanceProfilePhoto } from '../src/lib/pipeline/image-processor';
+import { analyzeSpecialtyProfile } from '../src/lib/pipeline/specialty-analyzer';
 
 config();
 
@@ -75,6 +76,14 @@ interface DoctorData {
   verified_facts: string;
   radar_chart_data: string;
   consulting_comment: string;
+  // 전문분야 프로파일
+  specialty_tagline: string | null;
+  specialty_tagline_en: string | null;
+  kol_products: string;
+  equipment_list: string;
+  specialty_categories: string;
+  technology_keywords: string;
+  mechanism_keywords: string;
 }
 
 // SQL INSERT 문 생성
@@ -89,6 +98,8 @@ function generateInsertSQL(doctor: DoctorData): string {
     kol_count, society_count, book_count,
     foundation_score, academic_score, clinical_score, reputation_score, total_score,
     tier, doctor_type, verified_facts, radar_chart_data, consulting_comment,
+    specialty_tagline, specialty_tagline_en, kol_products, equipment_list,
+    specialty_categories, technology_keywords, mechanism_keywords,
     crawl_status, updated_at
   ) VALUES (
     ${escapeSql(doctor.hospital_name)},
@@ -121,6 +132,13 @@ function generateInsertSQL(doctor: DoctorData): string {
     ${escapeSql(doctor.verified_facts)},
     ${escapeSql(doctor.radar_chart_data)},
     ${escapeSql(doctor.consulting_comment)},
+    ${escapeSql(doctor.specialty_tagline)},
+    ${escapeSql(doctor.specialty_tagline_en)},
+    ${escapeSql(doctor.kol_products)},
+    ${escapeSql(doctor.equipment_list)},
+    ${escapeSql(doctor.specialty_categories)},
+    ${escapeSql(doctor.technology_keywords)},
+    ${escapeSql(doctor.mechanism_keywords)},
     'completed',
     datetime('now')
   );`;
@@ -231,6 +249,14 @@ async function processHospital(
       console.log(`  ⚠️ 사진 없음 (이니셜로 대체)`);
     }
 
+    // 7. 전문분야 프로파일 분석 (의료관광용)
+    const specialtyProfile = await analyzeSpecialtyProfile(
+      scrapedContent,
+      facts.doctorName,
+      hospitalName,
+      config.anthropicApiKey
+    );
+
     return {
       hospital_name: hospitalName,
       doctor_name: facts.doctorName,
@@ -262,6 +288,14 @@ async function processHospital(
       verified_facts: JSON.stringify(facts.verifiedFacts),
       radar_chart_data: JSON.stringify(radarData),
       consulting_comment: comment,
+      // 전문분야 프로파일
+      specialty_tagline: specialtyProfile.tagline,
+      specialty_tagline_en: specialtyProfile.taglineEn,
+      kol_products: JSON.stringify(specialtyProfile.kolProducts),
+      equipment_list: JSON.stringify(specialtyProfile.equipment),
+      specialty_categories: JSON.stringify(specialtyProfile.specialties),
+      technology_keywords: JSON.stringify(specialtyProfile.technologyKeywords),
+      mechanism_keywords: JSON.stringify(specialtyProfile.mechanismKeywords),
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
