@@ -1,16 +1,11 @@
 // src/lib/pipeline/specialty-analyzer.ts
 // 의사 전문 시술분야 분석 모듈 - 의료관광 고객용 프로파일링
-// 하이브리드 전략: Haiku(단순 추출) + Sonnet(복잡한 분석)
+// Opus 4.5 사용 - 복잡한 인물/클리닉 프로파일 분석
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// 모델 선택 전략 (claude-analyzer.ts와 동일)
-const MODELS = {
-  // 단순 구조화 작업 - Haiku (빠르고 저렴)
-  extraction: 'claude-3-5-haiku-20241022',
-  // 복잡한 분석/창작 - Sonnet (정확하고 뉘앙스 파악)
-  analysis: 'claude-3-5-sonnet-20241022',
-} as const;
+// 최고 품질 모델 - 의료관광용 상세 프로파일에 Opus 4.5 사용
+const MODEL_PREMIUM = 'claude-opus-4-5-20250514';
 
 // ============================================
 // 장비/제품 → 기술/기전 매핑 데이터베이스
@@ -629,9 +624,9 @@ export async function analyzeClinicProfileWithAI(
   const kolSummary = kolInfo.map((k) => `${k.product}: ${k.mechanisms.join(', ')}`).join('\n');
 
   try {
-    // Sonnet 사용 - 클리닉 프로파일은 복잡한 분석/창작 필요
+    // Opus 4.5 사용 - 의료관광용 상세 클리닉 프로파일은 최고 품질 필요
     const response = await client.messages.create({
-      model: MODELS.analysis,
+      model: MODEL_PREMIUM,
       max_tokens: 2000,
       messages: [
         {

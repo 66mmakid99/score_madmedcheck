@@ -1,16 +1,18 @@
 // src/lib/pipeline/claude-analyzer.ts
 // Claude API를 사용한 팩트 추출 및 분석
-// 하이브리드 전략: Haiku(단순 추출) + Sonnet(복잡한 분석)
+// 3단계 하이브리드 전략: Haiku(추출) + Sonnet(분석) + Opus(프리미엄)
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { DoctorType, Tier } from '../types';
 
-// 모델 선택 전략
+// 모델 선택 전략 (3단계 하이브리드)
 const MODELS = {
   // 단순 구조화 작업 - Haiku (빠르고 저렴)
   extraction: 'claude-3-5-haiku-20241022',
-  // 복잡한 분석/창작 - Sonnet (정확하고 뉘앙스 파악)
+  // 중간 복잡도 - Sonnet (코멘트 생성 등)
   analysis: 'claude-3-5-sonnet-20241022',
+  // 최고 품질 필요 - Opus 4.5 (의료관광용 프로파일 등)
+  premium: 'claude-opus-4-5-20250514',
 } as const;
 
 export interface ExtractedFacts {
@@ -199,7 +201,7 @@ ${facts.verifiedFacts.join('\n')}
 
 코멘트만 출력하세요.`;
 
-  // Sonnet 사용 - 코멘트 생성은 뉘앙스/창작 필요
+  // Sonnet 사용 - 코멘트 생성은 중간 복잡도
   const message = await client.messages.create({
     model: MODELS.analysis,
     max_tokens: 200,
