@@ -1,5 +1,6 @@
 // src/lib/supabase.ts
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Doctor } from './types';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
@@ -75,9 +76,11 @@ export async function getStats() {
   let sum = 0;
 
   data.forEach((d) => {
-    tierCounts[d.tier] = (tierCounts[d.tier] || 0) + 1;
-    typeCounts[d.doctor_type] = (typeCounts[d.doctor_type] || 0) + 1;
-    sum += d.total_score;
+    const tier = d.tier || 'Diplomate';
+    const type = d.doctor_type || 'Guardian';
+    tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+    sum += d.total_score || 0;
   });
 
   return {

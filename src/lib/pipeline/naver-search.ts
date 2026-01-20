@@ -115,17 +115,28 @@ export async function searchHospitals(
   });
 
   if (!response.ok) {
-    throw new Error(`Naver API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text().catch(() => 'Unknown error');
+    throw new Error(`Naver API error: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
-  const data: NaverSearchResponse = await response.json();
+  let data: NaverSearchResponse;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error('Naver API returned invalid JSON response');
+  }
+
+  if (!data.items || !Array.isArray(data.items)) {
+    console.warn('Naver API returned no items');
+    return [];
+  }
 
   return data.items.map((item) => ({
-    name: item.title.replace(/<[^>]*>/g, ''), // HTML 태그 제거
+    name: item.title?.replace(/<[^>]*>/g, '') || '이름없음', // HTML 태그 제거
     url: item.link || null,
-    address: item.roadAddress || item.address,
-    telephone: item.telephone,
-    category: item.category,
+    address: item.roadAddress || item.address || '',
+    telephone: item.telephone || '',
+    category: item.category || '',
   }));
 }
 

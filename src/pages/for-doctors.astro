@@ -1,0 +1,179 @@
+---
+// src/pages/for-doctors.astro
+import Layout from '../layouts/Layout.astro';
+
+const title = '의료인 데이터 제출';
+const description = 'MadMedCheck에 의료인 정보를 제출하고 객관적 평가를 받으세요. SCI 논문, 제조사 인증 등 제3자 검증 데이터 기반 평가.';
+---
+
+<Layout title={title} description={description}>
+  <article class="max-w-3xl mx-auto">
+    <!-- Hero -->
+    <header class="text-center py-12">
+      <h1 class="text-4xl font-display font-black mb-4 text-mmc-primary">
+        의료인 <span class="text-mmc-accent">데이터 제출</span>
+      </h1>
+      <p class="text-mmc-secondary text-lg">
+        객관적 데이터로 실력을 증명하세요.<br />
+        마케팅이 아닌 검증된 팩트로 평가받습니다.
+      </p>
+    </header>
+
+    <!-- 제출 가능한 데이터 안내 -->
+    <section class="bg-white border border-mmc-border rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4 text-mmc-primary">제출 가능한 데이터</h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-semibold text-emerald-600 mb-2">학술 (Academic)</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
+            <li>• SCI 논문 목록 (PubMed 링크)</li>
+            <li>• 의학박사 학위 증빙</li>
+            <li>• 학회 발표 실적</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-blue-600 mb-2">임상 (Clinical)</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
+            <li>• 제조사 볼륨 어워드 인증서</li>
+            <li>• 공식 트레이너 임명장</li>
+            <li>• 라이브 서저리 강연 실적</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-violet-600 mb-2">자격 (Foundation)</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
+            <li>• 전문의 자격증</li>
+            <li>• 펠로우십 수료증</li>
+            <li>• 수련 이력</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-orange-600 mb-2">대외활동 (Reputation)</h3>
+          <ul class="text-sm text-mmc-secondary space-y-1">
+            <li>• KOL/키닥터 활동 증빙</li>
+            <li>• 학회 임원 명단</li>
+            <li>• 의학 저서</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 제출 불가 데이터 -->
+    <section class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4 text-red-700">제출해도 반영되지 않는 것</h2>
+      <ul class="text-sm text-mmc-secondary space-y-2">
+        <li class="flex items-start gap-2">
+          <span class="text-red-500">✕</span>
+          <span>"만족도 1위", "최다 시술" 등 <strong>자체 통계</strong></span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-red-500">✕</span>
+          <span>환자 후기, 리뷰, 추천글</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-red-500">✕</span>
+          <span>광고성 언론 보도, 인터뷰</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-red-500">✕</span>
+          <span>"~전문", "~특화" 등 <strong>자기 선언</strong></span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-red-500">✕</span>
+          <span>검증 불가능한 경력 주장</span>
+        </li>
+      </ul>
+      <p class="mt-4 text-xs text-red-600">
+        Anti-Fraud 원칙: 제3자가 검증할 수 없는 자기 주장은 0점 처리됩니다.
+      </p>
+    </section>
+
+    <!-- 제출 방법 -->
+    <section class="bg-white border border-mmc-border rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4 text-mmc-primary">제출 방법</h2>
+
+      <div class="space-y-4">
+        <div class="flex items-start gap-4">
+          <div class="w-8 h-8 bg-mmc-accent text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+          <div>
+            <h3 class="font-semibold text-mmc-primary">자료 준비</h3>
+            <p class="text-sm text-mmc-secondary">PubMed 논문 링크, 인증서 사본, 자격증 등 검증 가능한 자료를 준비합니다.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="w-8 h-8 bg-mmc-accent text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+          <div>
+            <h3 class="font-semibold text-mmc-primary">이메일 제출</h3>
+            <p class="text-sm text-mmc-secondary">아래 이메일로 자료를 보내주세요. 병원명과 성함을 함께 기재해주세요.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="w-8 h-8 bg-mmc-accent text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+          <div>
+            <h3 class="font-semibold text-mmc-primary">검증 및 반영</h3>
+            <p class="text-sm text-mmc-secondary">제출된 자료를 검증한 후 7일 이내에 MMC Score에 반영됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 연락처 -->
+    <section class="text-center py-8 bg-mmc-surface border border-mmc-border rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-mmc-primary">데이터 제출 문의</h2>
+      <p class="text-mmc-secondary mb-4">검증 가능한 자료와 함께 이메일로 보내주세요.</p>
+      <a
+        href="mailto:submit@madmedcheck.com?subject=[데이터 제출] 병원명 - 의사명"
+        class="inline-block bg-mmc-accent text-white font-bold px-8 py-3 rounded-lg hover:bg-red-700 transition"
+      >
+        submit@madmedcheck.com
+      </a>
+      <p class="mt-4 text-xs text-mmc-secondary">
+        * 현재 피부과, 성형외과 전문의만 등록 가능합니다.
+      </p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="mt-12">
+      <h2 class="text-xl font-bold mb-6 text-mmc-primary">자주 묻는 질문</h2>
+
+      <div class="space-y-4">
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-semibold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
+            등록 비용이 있나요?
+            <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="mt-3 text-mmc-secondary text-sm">
+            아니요, MadMedCheck 등록은 무료입니다. 광고비를 받지 않으며, 오직 객관적 데이터만으로 평가합니다.
+          </p>
+        </details>
+
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-semibold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
+            점수를 올리려면 어떻게 해야 하나요?
+            <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="mt-3 text-mmc-secondary text-sm">
+            SCI 논문 발표, 제조사 공식 트레이너 임명, 볼륨 어워드 획득 등 검증 가능한 실적을 쌓으시면 됩니다.
+            자세한 배점 기준은 <a href="/about" class="text-mmc-accent hover:underline">평가 기준 페이지</a>를 참고하세요.
+          </p>
+        </details>
+
+        <details class="bg-white border border-mmc-border rounded-lg p-4 group">
+          <summary class="font-semibold cursor-pointer list-none flex justify-between items-center text-mmc-primary">
+            이미 등록된 정보가 틀렸어요.
+            <span class="text-mmc-accent group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="mt-3 text-mmc-secondary text-sm">
+            이메일로 정정 요청을 보내주세요. 검증 가능한 자료와 함께 보내주시면 신속히 수정해드립니다.
+          </p>
+        </details>
+      </div>
+    </section>
+  </article>
+</Layout>
