@@ -709,7 +709,7 @@ export async function analyzeSpecialtyProfile(
   scrapedContent: string,
   doctorName: string | null,
   hospitalName: string,
-  anthropicApiKey: string
+  groqApiKey: string // Groq API Key 사용
 ): Promise<SpecialtyProfile> {
   console.log(`  🔬 전문분야 분석 중...`);
 
@@ -740,15 +740,15 @@ export async function analyzeSpecialtyProfile(
   const technologyKeywords = [...new Set(equipment.flatMap((e) => e.technologies))];
   const mechanismKeywords = [...new Set(equipment.flatMap((e) => e.mechanisms))];
 
-  // 6. AI로 종합 클리닉 프로파일 분석
-  console.log(`  🤖 AI 종합 분석 중...`);
+  // 6. Groq로 종합 클리닉 프로파일 분석
+  console.log(`  🤖 Groq Llama 3.3 분석 중...`);
   const aiResult = await analyzeClinicProfileWithAI(
     scrapedContent,
     doctorName,
     hospitalName,
     kolProducts,
     equipment,
-    anthropicApiKey
+    groqApiKey
   );
 
   console.log(`  ✅ 전문분야 분석 완료: ${aiResult.tagline}`);

@@ -19,8 +19,7 @@ function validateEnv() {
     'NAVER_CLIENT_ID',
     'NAVER_CLIENT_SECRET',
     'FIRECRAWL_API_KEY',
-    'GROQ_API_KEY', // Llama 3.3 70B (팩트 추출 + 코멘트 생성)
-    'ANTHROPIC_API_KEY', // Claude Vision (사진 검증) + Opus (의료관광 프로파일)
+    'GROQ_API_KEY', // Llama 3.3 70B (팩트 추출 + 코멘트 + 전문분야 분석)
   ];
 
   const missing = required.filter((key) => !process.env[key]);
@@ -35,8 +34,7 @@ function validateEnv() {
     naverClientId: process.env.NAVER_CLIENT_ID!,
     naverClientSecret: process.env.NAVER_CLIENT_SECRET!,
     firecrawlApiKey: process.env.FIRECRAWL_API_KEY!,
-    groqApiKey: process.env.GROQ_API_KEY!, // Llama 3.3 70B
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY!, // Claude (Vision + Opus)
+    groqApiKey: process.env.GROQ_API_KEY!, // Llama 3.3 70B (전부 처리)
   };
 }
 
