@@ -41,6 +41,7 @@ function rowToDoctor(row: Record<string, unknown>, rank?: number): Doctor {
     id: String(row.id || ''),
     hospital_name: String(row.hospital_name || ''),
     doctor_name: row.doctor_name ? String(row.doctor_name) : null,
+    english_name: row.english_name ? String(row.english_name) : null,
     hospital_url: row.hospital_url ? String(row.hospital_url) : null,
     region: String(row.region || ''),
     specialist_type: (row.specialist_type as Doctor['specialist_type']) || '일반의',
@@ -84,7 +85,78 @@ function parseJSON<T>(value: unknown, fallback: T): T {
   }
 }
 
-// TOP 100 조회
+// 정렬 옵션 타입
+export type SortOption = 'korean' | 'english' | 'region' | 'specialty';
+
+// 전체 의사 목록 조회 (인명사전 방식 - 정렬 옵션 지원)
+export async function getAllDoctors(
+  db: D1Database | null,
+  options?: {
+    sort?: SortOption;
+    region?: string;
+    specialty?: string;
+    search?: string;
+  }
+): Promise<Doctor[]> {
+  if (!db) {
+    console.warn('D1 not available, using sample data');
+    return getSampleDoctors();
+  }
+
+  try {
+    const sort = options?.sort || 'korean';
+    let orderBy = 'doctor_name ASC'; // 기본: 가나다순
+
+    switch (sort) {
+      case 'korean':
+        orderBy = 'doctor_name ASC';
+        break;
+      case 'english':
+        orderBy = 'english_name ASC';
+        break;
+      case 'region':
+        orderBy = 'region ASC, doctor_name ASC';
+        break;
+      case 'specialty':
+        orderBy = 'specialist_type ASC, doctor_name ASC';
+        break;
+    }
+
+    let query = `SELECT * FROM doctors WHERE total_score >= 100`;
+    const params: unknown[] = [];
+
+    // 필터 조건 추가
+    if (options?.region) {
+      query += ` AND region = ?`;
+      params.push(options.region);
+    }
+    if (options?.specialty) {
+      query += ` AND specialist_type = ?`;
+      params.push(options.specialty);
+    }
+    if (options?.search) {
+      query += ` AND (doctor_name LIKE ? OR english_name LIKE ? OR hospital_name LIKE ?)`;
+      const searchTerm = `%${options.search}%`;
+      params.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    query += ` ORDER BY ${orderBy}`;
+
+    const stmt = db.prepare(query);
+    const result = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+
+    if (!result.results || result.results.length === 0) {
+      return getSampleDoctors();
+    }
+
+    return (result.results as Record<string, unknown>[]).map((row) => rowToDoctor(row));
+  } catch (error) {
+    console.error('D1 getAllDoctors error:', error);
+    return getSampleDoctors();
+  }
+}
+
+// TOP 100 조회 (레거시 - 나중에 제거 예정)
 export async function getTop100(db: D1Database | null): Promise<Doctor[]> {
   if (!db) {
     console.warn('D1 not available, using sample data');
@@ -195,6 +267,7 @@ export async function getStats(db: D1Database | null) {
 export interface DoctorUpsertData {
   hospital_name: string;
   doctor_name: string | null;
+  english_name?: string | null; // 영문이름 (Google 검색으로 확인된 경우)
   hospital_url: string | null;
   region: string;
   specialist_type: string;
@@ -342,6 +415,7 @@ function getSampleDoctors(): Doctor[] {
       id: '1',
       hospital_name: '청담 S클리닉',
       doctor_name: '김명의',
+      english_name: 'Myeong-Ui Kim',
       hospital_url: null,
       region: '청담역',
       specialist_type: '피부과전문의',
@@ -377,6 +451,7 @@ function getSampleDoctors(): Doctor[] {
       id: '2',
       hospital_name: '강남 피부과',
       doctor_name: '이실장',
+      english_name: 'Siljang Lee',
       hospital_url: null,
       region: '강남역',
       specialist_type: '일반의',
@@ -412,6 +487,7 @@ function getSampleDoctors(): Doctor[] {
       id: '3',
       hospital_name: '신사 더마클리닉',
       doctor_name: '박교수',
+      english_name: 'Kyosu Park',
       hospital_url: null,
       region: '신사역',
       specialist_type: '피부과전문의',
