@@ -9,6 +9,7 @@ export interface Scores {
   academic: number;
   clinical: number;
   reputation: number;
+  conferenceActivity: number; // 학술대회 활동 점수 (별도 집계)
   total: number;
 }
 
@@ -43,9 +44,17 @@ export interface RadarChartData {
  * - 키닥터(KOL): +3/건
  * - 학회 임원: +5/건 (max 30)
  * - 저서: +10/권
+ *
+ * Conference Activity (학술대회 발표) - 보수적 배점
+ * - Tier 1 학회 (대한피부과/성형외과학회): 0.5점/회
+ * - Tier 2 학회 (레이저/세부학회): 0.3점/회
+ * - Tier 3 학회 (실무학회): 0.1점/회
+ * - 국제 학회 (IMCAS/AMWC): 1.0점/회
+ * - 발표 유형 가중치: 기조강연 x3, 초청/라이브 x2, 구연 x1, 좌장 x0.5, 포스터 x0.3
+ * - 연간 상한: 10점, 단일 학회 상한: 3점, 총 상한: 50점
  */
 
-export function calculateScores(facts: ExtractedFacts): Scores {
+export function calculateScores(facts: ExtractedFacts, conferenceActivityScore: number = 0): Scores {
   // Foundation Score
   let foundation = 0;
   if (facts.specialistType === '피부과전문의' || facts.specialistType === '성형외과전문의') {
@@ -82,9 +91,14 @@ export function calculateScores(facts: ExtractedFacts): Scores {
   reputation += Math.min(facts.societyCount * 5, 30); // max 30
   reputation += facts.bookCount * 10;
 
-  const total = foundation + academic + clinical + reputation;
+  // Conference Activity Score (보수적 배점, 별도 크롤링에서 산정)
+  // 최대 50점으로 제한
+  const conferenceActivity = Math.min(conferenceActivityScore, 50);
 
-  return { foundation, academic, clinical, reputation, total };
+  // Total: 학술대회 활동 점수는 reputation에 합산
+  const total = foundation + academic + clinical + reputation + conferenceActivity;
+
+  return { foundation, academic, clinical, reputation, conferenceActivity, total };
 }
 
 /**
@@ -164,8 +178,9 @@ export function calculateRadarData(facts: ExtractedFacts, scores: Scores): Radar
   // Safety: 무사고 기록 (있으면 100, 없으면 50)
   const safety = facts.hasSafetyRecord ? 100 : 50;
 
-  // Activity: 대외 활동 (max 50점 기준)
-  const activity = Math.min(100, (scores.reputation / 50) * 100);
+  // Activity: 대외 활동 + 학술대회 활동 (reputation max 50 + conference max 50 = 100점 기준)
+  const activityTotal = scores.reputation + scores.conferenceActivity;
+  const activity = Math.min(100, (activityTotal / 100) * 100);
 
   return {
     academic: Math.round(academic),
@@ -178,9 +193,11 @@ export function calculateRadarData(facts: ExtractedFacts, scores: Scores): Radar
 
 /**
  * 전체 분석 결과 반환
+ * @param facts 추출된 팩트 데이터
+ * @param conferenceActivityScore 학술대회 활동 점수 (별도 크롤링에서 산정, 기본값 0)
  */
-export function analyzeDoctor(facts: ExtractedFacts) {
-  const scores = calculateScores(facts);
+export function analyzeDoctor(facts: ExtractedFacts, conferenceActivityScore: number = 0) {
+  const scores = calculateScores(facts, conferenceActivityScore);
   const tier = determineTier(scores.total);
   const doctorType = determineDoctorType(facts, scores);
   const radarData = calculateRadarData(facts, scores);

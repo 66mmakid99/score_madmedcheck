@@ -2,66 +2,16 @@
 // src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
 import DoctorCard from '../components/DoctorCard.astro';
-import { getTop100, getStats } from '../lib/supabase';
+import { getD1, getTop100, getStats } from '../lib/d1';
 import { TIER_INFO } from '../lib/types';
 
-const doctors = await getTop100();
-const stats = await getStats();
+// Cloudflare D1 바인딩 가져오기
+const runtime = Astro.locals.runtime;
+const db = getD1(runtime);
 
-// 샘플 데이터 (Supabase 연결 전 테스트용)
-const sampleDoctors = doctors.length > 0 ? doctors : [
-  {
-    id: '1',
-    hospital_name: '청담 S클리닉',
-    doctor_name: '김명의',
-    region: '청담역',
-    specialist_type: '피부과전문의',
-    years_of_practice: 18,
-    tier: 'Laureate',
-    doctor_type: 'Hexagon',
-    total_score: 520,
-    foundation_score: 86,
-    academic_score: 175,
-    clinical_score: 230,
-    reputation_score: 29,
-    radar_chart_data: { academic: 88, clinical: 92, career: 86, safety: 100, activity: 58 },
-    rank: 1,
-  },
-  {
-    id: '2',
-    hospital_name: '강남 피부과',
-    doctor_name: '이실장',
-    region: '강남역',
-    specialist_type: '일반의',
-    years_of_practice: 15,
-    tier: 'Master',
-    doctor_type: 'Maestro',
-    total_score: 305,
-    foundation_score: 40,
-    academic_score: 0,
-    clinical_score: 250,
-    reputation_score: 15,
-    radar_chart_data: { academic: 0, clinical: 100, career: 40, safety: 100, activity: 30 },
-    rank: 2,
-  },
-  {
-    id: '3',
-    hospital_name: '신사 더마클리닉',
-    doctor_name: '박교수',
-    region: '신사역',
-    specialist_type: '피부과전문의',
-    years_of_practice: 12,
-    tier: 'Authority',
-    doctor_type: 'Scholar',
-    total_score: 380,
-    foundation_score: 74,
-    academic_score: 195,
-    clinical_score: 80,
-    reputation_score: 31,
-    radar_chart_data: { academic: 98, clinical: 32, career: 74, safety: 50, activity: 62 },
-    rank: 3,
-  },
-];
+// D1에서 데이터 조회 (DB 없으면 샘플 데이터 반환)
+const doctors = await getTop100(db);
+const stats = await getStats(db);
 
 // 현재 날짜
 const currentDate = new Date().toLocaleDateString('ko-KR', {
@@ -106,17 +56,17 @@ const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFull
     <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
         <div>
-          <div class="text-2xl font-display font-bold">{stats.total || sampleDoctors.length}</div>
+          <div class="text-2xl font-display font-bold">{stats.total}</div>
           <div class="text-mmc-secondary text-sm">검증된 의사</div>
         </div>
         <div>
           <div class="text-2xl font-display font-bold text-tier-laureate">
-            {stats.tierCounts?.Laureate || 1}
+            {stats.tierCounts?.Laureate || 0}
           </div>
           <div class="text-mmc-secondary text-sm">Laureate 등급</div>
         </div>
         <div>
-          <div class="text-2xl font-display font-bold">{stats.avgScore || 335}</div>
+          <div class="text-2xl font-display font-bold">{stats.avgScore}</div>
           <div class="text-mmc-secondary text-sm">평균 점수</div>
         </div>
         <div>
@@ -152,12 +102,12 @@ const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFull
 
   <!-- Doctor List -->
   <div class="border-x border-b border-mmc-border rounded-b-lg overflow-hidden">
-    {sampleDoctors.map((doctor, index) => (
-      <DoctorCard doctor={doctor} isFirst={index === 0} isLast={index === sampleDoctors.length - 1} />
+    {doctors.map((doctor, index) => (
+      <DoctorCard doctor={doctor} isFirst={index === 0} isLast={index === doctors.length - 1} />
     ))}
   </div>
 
-  {sampleDoctors.length === 0 && (
+  {doctors.length === 0 && (
     <div class="text-center py-20 text-mmc-secondary border border-mmc-border rounded-lg bg-mmc-surface">
       <p>데이터를 불러오는 중...</p>
     </div>

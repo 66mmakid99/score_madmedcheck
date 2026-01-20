@@ -1,15 +1,14 @@
 // src/lib/pipeline/index.ts
 // 전체 파이프라인 통합
 
-import { createClient } from '@supabase/supabase-js';
 import { searchClinicsInRegion, type HospitalBasicInfo } from './naver-search';
 import { scrapeUrl, extractDoctorSections } from './firecrawl';
 import { extractFacts, generateConsultingComment } from './claude-analyzer';
 import { analyzeDoctor } from './scoring';
+import { upsertDoctor, logCrawlError, type D1Database } from '../d1';
 
 export interface PipelineConfig {
-  supabaseUrl: string;
-  supabaseServiceKey: string;
+  db: D1Database | null; // Cloudflare D1 바인딩
   naverClientId: string;
   naverClientSecret: string;
   firecrawlApiKey: string;
@@ -78,8 +77,10 @@ export async function processHospital(
       config.anthropicApiKey
     );
 
-    // 5. Supabase 저장
-    const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey);
+    // 5. D1 저장
+    if (!config.db) {
+      throw new Error('D1 database not available');
+    }
 
     const doctorData = {
       hospital_name: hospitalName,
@@ -107,39 +108,27 @@ export async function processHospital(
       total_score: scores.total,
       tier,
       doctor_type: doctorType,
-      verified_facts: JSON.stringify(facts.verifiedFacts),
-      filtered_claims: JSON.stringify(facts.filteredClaims),
-      radar_chart_data: JSON.stringify(radarData),
+      verified_facts: facts.verifiedFacts,
+      filtered_claims: facts.filteredClaims,
+      radar_chart_data: radarData,
       consulting_comment: comment,
-      crawl_status: 'completed',
+      crawl_status: 'completed' as const,
       last_crawled_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
-      .from('doctors')
-      .upsert(doctorData, { onConflict: 'hospital_name,doctor_name' })
-      .select('id')
-      .single();
+    const doctorId = await upsertDoctor(config.db, doctorData);
 
-    if (error) {
-      throw new Error(`Supabase error: ${error.message}`);
-    }
-
-    console.log(`  💾 저장 완료: ${data.id}`);
-    return { hospitalName, success: true, doctorId: data.id };
+    console.log(`  💾 저장 완료: ${doctorId}`);
+    return { hospitalName, success: true, doctorId };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`  ❌ 오류: ${errorMessage}`);
 
     // 크롤링 로그 저장
     try {
-      const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey);
-      await supabase.from('crawl_logs').insert({
-        hospital_name: hospitalName,
-        hospital_url: hospital.url,
-        error_message: errorMessage,
-        status: 'failed',
-      });
+      if (config.db) {
+        await logCrawlError(config.db, hospitalName, hospital.url || null, errorMessage);
+      }
     } catch {
       // 로그 저장 실패는 무시
     }
