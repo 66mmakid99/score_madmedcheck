@@ -2,14 +2,7 @@ name = "madmedcheck"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
-[vars]
-name = "madmedcheck"
-compatibility_date = "2024-01-01"
-pages_build_output_dir = "dist"
-
 [[d1_databases]]
 binding = "DB"
-database_name = "52329880-9653-45a4-bf4d-37c908cdcfdb"
-database_id = ""
-
-
+database_name = "madmedcheck-db"
+database_id = "9f2b717c-47a7-4066-9a53-87ad3b5f1758"
