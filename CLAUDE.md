@@ -32,10 +32,10 @@
 - [x] AEO/GEO/SEO 최적화
 - [x] 샘플 데이터 3건
 - [x] **의사 프로필 사진 추출** (웹사이트 + 구글 이미지)
-- [x] **AI 교차검증** (Claude Vision으로 동일 인물 확인)
-- [x] **배경 제거 + 그라데이션 합성** (Remove.bg + Sharp)
+- [x] **AI 교차검증** (Gemini Vision 무료 티어로 검증)
 - [x] **전문분야 프로파일링** (의료관광용 - KOL/장비 기반 분석)
 - [x] **자동화 크롤링** (GitHub Actions + Cloudflare Cron Worker)
+- [x] **비용 최적화** (Groq + Gemini 전환, 월 ~$31)
 
 ## 다음 할 일 (우선순위)
 1. **D1 데이터베이스 초기화**
@@ -69,13 +69,13 @@ src/
 │       ├── naver-search.ts  # 네이버 검색
 │       ├── firecrawl.ts     # 웹 스크래핑
 │       ├── groq-client.ts   # Groq Llama 3.3 클라이언트
+│       ├── gemini-client.ts # Google Gemini Vision 클라이언트
 │       ├── claude-analyzer.ts # AI 분석 (Groq 사용)
 │       ├── scoring.ts       # 점수 계산
 │       ├── conference-crawler.ts # 학회 크롤러
 │       ├── image-extractor.ts # 의사 사진 추출
-│       ├── photo-validator.ts # AI 사진 교차검증 (Claude Vision)
-│       ├── image-processor.ts # 배경 제거 + 합성
-│       └── specialty-analyzer.ts # 전문분야 분석 (Claude Opus)
+│       ├── photo-validator.ts # AI 사진 교차검증 (Gemini Vision)
+│       └── specialty-analyzer.ts # 전문분야 분석 (Groq Llama)
 d1-schema.sql                # D1 SQLite 스키마
 wrangler.toml                # Cloudflare 설정
 ```
@@ -118,37 +118,39 @@ Conference Activity (학술대회 발표) - 보수적 배점
 - Master: 200+
 - Diplomate: 100+
 
-## AI 모델 전략 (하이브리드)
+## AI 모델 전략 (Groq + Gemini 무료)
 ```
 Groq Llama 3.3 70B ($0.59/1M input, $0.79/1M output)
 - 팩트 추출 (claude-analyzer.ts → extractFacts)
 - 코멘트 생성 (claude-analyzer.ts → generateConsultingComment)
-- 월 예상 비용: ~$0.50
+- 전문분야 프로파일 (specialty-analyzer.ts)
+- 월 예상 비용: ~$12 (2000곳 월 1회)
 
-Claude Sonnet 4 ($3/1M input, $15/1M output)
-- 사진 교차검증 (photo-validator.ts) - Vision 필요
+Gemini Vision (무료 티어: 15 RPM, 100만 토큰/일)
+- 사진 교차검증 (photo-validator.ts → gemini-client.ts)
+- 의사 프로필 사진 검증 (동일 인물 확인)
+- 월 예상 비용: $0 (무료)
 
-Claude Opus 4.5 ($15/1M input, $75/1M output)
-- 의료관광용 상세 프로파일 (specialty-analyzer.ts)
-- 복잡한 클리닉 분석
+Firecrawl ($19/월)
+- 웹 스크래핑 (3000 크레딧/월)
 
-총 월 예상 비용: ~$3-5 (기존 $27 대비 85% 절감)
+총 월 예상 비용: ~$31 (Groq $12 + Firecrawl $19)
+- 전국 2000+ 피부과 월 1회 크롤링 기준
 ```
 
 ## 환경변수 필요
 ```
-# D1은 Cloudflare 자동 바인딩 (환경변수 불필요)
+# 필수
 NAVER_CLIENT_ID=       # 네이버 지도 API
 NAVER_CLIENT_SECRET=
 FIRECRAWL_API_KEY=     # 웹 스크래핑
+GROQ_API_KEY=          # Llama 3.3 70B (팩트 추출 + 코멘트 + 프로파일)
 
-# AI - 하이브리드 전략
-GROQ_API_KEY=          # Llama 3.3 70B (팩트 추출 + 코멘트)
-ANTHROPIC_API_KEY=     # Claude Vision + Opus (사진 검증 + 프로파일)
-
-# 선택사항
+# 선택 (사진 검증용)
+GEMINI_API_KEY=        # Gemini Vision (무료, 사진 검증)
 SERPAPI_KEY=           # 구글 이미지 검색 (사진 교차검증용)
-REMOVEBG_API_KEY=      # 배경 제거 (없으면 비네팅만 적용)
+
+# D1은 Cloudflare 자동 바인딩 (환경변수 불필요)
 ```
 
 ## 명령어
@@ -170,14 +172,17 @@ npx tsx scripts/run-pipeline.ts --region "청담역 피부과"
 ## 자동화 크롤링 설정
 
 ### 방법 1: GitHub Actions (권장)
-매주 월요일 자동 실행, GitHub Secrets 설정 필요:
+월 1회 자동 실행, GitHub Secrets 설정 필요:
 ```
+# 필수
 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 FIRECRAWL_API_KEY
-GROQ_API_KEY              # Llama 3.3 70B
-ANTHROPIC_API_KEY         # Claude Vision + Opus
+GROQ_API_KEY              # Llama 3.3 70B (전체 분석)
 CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
-SERPAPI_KEY (선택), REMOVEBG_API_KEY (선택)
+
+# 선택 (사진 검증용)
+GEMINI_API_KEY            # Gemini Vision (무료)
+SERPAPI_KEY               # 구글 이미지 검색
 ```
 - 파일: `.github/workflows/crawl.yml`
 - 수동 실행: GitHub Actions → "Run workflow"
@@ -191,11 +196,12 @@ wrangler deploy
 
 # Secrets 설정 (Cloudflare 대시보드에서)
 wrangler secret put NAVER_CLIENT_ID
-wrangler secret put ANTHROPIC_API_KEY
+wrangler secret put GROQ_API_KEY
+wrangler secret put GEMINI_API_KEY
 # ...
 ```
 - 파일: `workers/scheduled-crawler/`
-- 스케줄: 매주 월/수 자동 실행
+- 스케줄: 월 1회 자동 실행
 
 ## Anti-Fraud 원칙
 - 자기 주장 = 0점
