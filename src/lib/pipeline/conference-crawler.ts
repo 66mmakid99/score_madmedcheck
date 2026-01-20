@@ -192,7 +192,6 @@ export interface PresenterActivitySummary {
  *
  * 추가 조정:
  * - 비활동 페널티: 최근 1년 활동 없으면 전체 50% 추가 감가
- * - 연속 활동 보너스: 2년 연속 +15%, 3년 연속 +30%
  *
  * 상한:
  * - 연간 최대: 10점
@@ -295,40 +294,11 @@ export function calculateActivityScore(summary: PresenterActivitySummary): numbe
     totalScore *= 0.5;
   }
 
-  // 연속 활동 보너스
-  const consecutiveYears = countConsecutiveYears(yearsWithActivity, currentYear);
-  if (consecutiveYears >= 3) {
-    totalScore *= 1.3; // 3년 연속: +30%
-  } else if (consecutiveYears >= 2) {
-    totalScore *= 1.15; // 2년 연속: +15%
-  }
-
   // 총 상한 적용
   totalScore = Math.min(totalScore, TOTAL_CAP);
 
   // 소수점 한자리까지
   return Math.round(totalScore * 10) / 10;
-}
-
-/**
- * 연속 활동 연수 계산
- */
-function countConsecutiveYears(years: number[], currentYear: number): number {
-  if (years.length === 0) return 0;
-
-  const sortedYears = [...years].sort((a, b) => b - a); // 내림차순
-  let consecutive = 0;
-
-  for (let i = 0; i <= 3; i++) {
-    const targetYear = currentYear - i;
-    if (sortedYears.includes(targetYear)) {
-      consecutive++;
-    } else {
-      break; // 연속 끊김
-    }
-  }
-
-  return consecutive;
 }
 
 /**
