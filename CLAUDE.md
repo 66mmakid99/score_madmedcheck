@@ -27,7 +27,7 @@
 - [x] 의사 데이터 제출 페이지 (/for-doctors)
 - [x] **관리자 대시보드** (/admin)
 - [x] 컴포넌트 (TierBadge, TypeBadge, DoctorCard, RadarChart)
-- [x] 데이터 수집 파이프라인 (네이버/Firecrawl/Claude)
+- [x] 데이터 수집 파이프라인 (네이버/Firecrawl/Groq+Claude)
 - [x] **학회 크롤러 + 보수적 배점 시스템**
 - [x] AEO/GEO/SEO 최적화
 - [x] 샘플 데이터 3건
@@ -68,13 +68,14 @@ src/
 │       ├── index.ts         # 통합 파이프라인
 │       ├── naver-search.ts  # 네이버 검색
 │       ├── firecrawl.ts     # 웹 스크래핑
-│       ├── claude-analyzer.ts # AI 분석
+│       ├── groq-client.ts   # Groq Llama 3.3 클라이언트
+│       ├── claude-analyzer.ts # AI 분석 (Groq 사용)
 │       ├── scoring.ts       # 점수 계산
 │       ├── conference-crawler.ts # 학회 크롤러
 │       ├── image-extractor.ts # 의사 사진 추출
-│       ├── photo-validator.ts # AI 사진 교차검증
+│       ├── photo-validator.ts # AI 사진 교차검증 (Claude Vision)
 │       ├── image-processor.ts # 배경 제거 + 합성
-│       └── specialty-analyzer.ts # 전문분야 분석 (의료관광용)
+│       └── specialty-analyzer.ts # 전문분야 분석 (Claude Opus)
 d1-schema.sql                # D1 SQLite 스키마
 wrangler.toml                # Cloudflare 설정
 ```
@@ -117,13 +118,33 @@ Conference Activity (학술대회 발표) - 보수적 배점
 - Master: 200+
 - Diplomate: 100+
 
+## AI 모델 전략 (하이브리드)
+```
+Groq Llama 3.3 70B ($0.59/1M input, $0.79/1M output)
+- 팩트 추출 (claude-analyzer.ts → extractFacts)
+- 코멘트 생성 (claude-analyzer.ts → generateConsultingComment)
+- 월 예상 비용: ~$0.50
+
+Claude Sonnet 4 ($3/1M input, $15/1M output)
+- 사진 교차검증 (photo-validator.ts) - Vision 필요
+
+Claude Opus 4.5 ($15/1M input, $75/1M output)
+- 의료관광용 상세 프로파일 (specialty-analyzer.ts)
+- 복잡한 클리닉 분석
+
+총 월 예상 비용: ~$3-5 (기존 $27 대비 85% 절감)
+```
+
 ## 환경변수 필요
 ```
 # D1은 Cloudflare 자동 바인딩 (환경변수 불필요)
 NAVER_CLIENT_ID=       # 네이버 지도 API
 NAVER_CLIENT_SECRET=
 FIRECRAWL_API_KEY=     # 웹 스크래핑
-ANTHROPIC_API_KEY=     # AI 분석 + 사진 교차검증
+
+# AI - 하이브리드 전략
+GROQ_API_KEY=          # Llama 3.3 70B (팩트 추출 + 코멘트)
+ANTHROPIC_API_KEY=     # Claude Vision + Opus (사진 검증 + 프로파일)
 
 # 선택사항
 SERPAPI_KEY=           # 구글 이미지 검색 (사진 교차검증용)
@@ -152,7 +173,9 @@ npx tsx scripts/run-pipeline.ts --region "청담역 피부과"
 매주 월요일 자동 실행, GitHub Secrets 설정 필요:
 ```
 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
-FIRECRAWL_API_KEY, ANTHROPIC_API_KEY
+FIRECRAWL_API_KEY
+GROQ_API_KEY              # Llama 3.3 70B
+ANTHROPIC_API_KEY         # Claude Vision + Opus
 CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
 SERPAPI_KEY (선택), REMOVEBG_API_KEY (선택)
 ```

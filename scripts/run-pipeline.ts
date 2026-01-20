@@ -19,7 +19,8 @@ function validateEnv() {
     'NAVER_CLIENT_ID',
     'NAVER_CLIENT_SECRET',
     'FIRECRAWL_API_KEY',
-    'ANTHROPIC_API_KEY',
+    'GROQ_API_KEY', // Llama 3.3 70B (팩트 추출 + 코멘트 생성)
+    'ANTHROPIC_API_KEY', // Claude Vision (사진 검증) + Opus (의료관광 프로파일)
   ];
 
   const missing = required.filter((key) => !process.env[key]);
@@ -34,7 +35,8 @@ function validateEnv() {
     naverClientId: process.env.NAVER_CLIENT_ID!,
     naverClientSecret: process.env.NAVER_CLIENT_SECRET!,
     firecrawlApiKey: process.env.FIRECRAWL_API_KEY!,
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
+    groqApiKey: process.env.GROQ_API_KEY!, // Llama 3.3 70B
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY!, // Claude (Vision + Opus)
   };
 }
 
@@ -201,22 +203,22 @@ async function processHospital(
       scrapedContent = `병원명: ${hospitalName}\n주소: ${hospital.address || ''}\n전화: ${hospital.telephone || ''}`;
     }
 
-    // 2. Claude로 팩트 추출
-    console.log(`  🤖 Claude 분석 중...`);
-    const facts = await extractFacts(scrapedContent, hospitalName, config.anthropicApiKey);
+    // 2. Groq Llama 3.3으로 팩트 추출
+    console.log(`  🤖 Groq Llama 3.3 분석 중...`);
+    const facts = await extractFacts(scrapedContent, hospitalName, config.groqApiKey);
     console.log(`  ✅ 팩트 ${facts.verifiedFacts.length}개 추출`);
 
     // 3. 점수 계산
     const { scores, tier, doctorType, radarData } = analyzeDoctor(facts);
     console.log(`  📊 점수: ${scores.total}점 (${tier}) - 저장 대상`);
 
-    // 4. AI 코멘트 생성
+    // 4. Groq로 AI 코멘트 생성
     const comment = await generateConsultingComment(
       facts,
       scores,
       doctorType,
       tier,
-      config.anthropicApiKey
+      config.groqApiKey
     );
 
     // 5. 의사 사진 추출 및 AI 교차검증
