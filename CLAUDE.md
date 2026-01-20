@@ -35,6 +35,7 @@
 - [x] **AI 교차검증** (Claude Vision으로 동일 인물 확인)
 - [x] **배경 제거 + 그라데이션 합성** (Remove.bg + Sharp)
 - [x] **전문분야 프로파일링** (의료관광용 - KOL/장비 기반 분석)
+- [x] **자동화 크롤링** (GitHub Actions + Cloudflare Cron Worker)
 
 ## 다음 할 일 (우선순위)
 1. **D1 데이터베이스 초기화**
@@ -139,7 +140,39 @@ npm run deploy   # Cloudflare 배포
 wrangler d1 create madmedcheck-db
 wrangler d1 execute madmedcheck-db --file=./d1-schema.sql
 wrangler d1 execute madmedcheck-db --command "SELECT * FROM doctors"
+
+# 수동 크롤링
+npx tsx scripts/run-pipeline.ts
+npx tsx scripts/run-pipeline.ts --region "청담역 피부과"
 ```
+
+## 자동화 크롤링 설정
+
+### 방법 1: GitHub Actions (권장)
+매주 월요일 자동 실행, GitHub Secrets 설정 필요:
+```
+NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+FIRECRAWL_API_KEY, ANTHROPIC_API_KEY
+CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+SERPAPI_KEY (선택), REMOVEBG_API_KEY (선택)
+```
+- 파일: `.github/workflows/crawl.yml`
+- 수동 실행: GitHub Actions → "Run workflow"
+
+### 방법 2: Cloudflare Cron Worker
+서버리스 환경에서 스케줄 실행:
+```bash
+# Worker 배포
+cd workers/scheduled-crawler
+wrangler deploy
+
+# Secrets 설정 (Cloudflare 대시보드에서)
+wrangler secret put NAVER_CLIENT_ID
+wrangler secret put ANTHROPIC_API_KEY
+# ...
+```
+- 파일: `workers/scheduled-crawler/`
+- 스케줄: 매주 월/수 자동 실행
 
 ## Anti-Fraud 원칙
 - 자기 주장 = 0점
