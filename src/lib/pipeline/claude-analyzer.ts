@@ -8,11 +8,11 @@ import type { DoctorType, Tier } from '../types';
 // 모델 선택 전략 (3단계 하이브리드)
 const MODELS = {
   // 단순 구조화 작업 - Haiku (빠르고 저렴)
-  extraction: 'claude-3-5-haiku-20241022',
-  // 중간 복잡도 - Sonnet (코멘트 생성 등)
-  analysis: 'claude-3-5-sonnet-20241022',
+  extraction: 'claude-3-5-haiku-latest',
+  // 중간 복잡도 - Sonnet 4 (코멘트 생성 등)
+  analysis: 'claude-sonnet-4-20250514',
   // 최고 품질 필요 - Opus 4.5 (의료관광용 프로파일 등)
-  premium: 'claude-opus-4-5-20250514',
+  premium: 'claude-opus-4-5-20251101',
 } as const;
 
 export interface ExtractedFacts {
