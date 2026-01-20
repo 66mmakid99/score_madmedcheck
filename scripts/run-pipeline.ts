@@ -8,6 +8,7 @@ import { extractFacts, generateConsultingComment } from '../src/lib/pipeline/cla
 import { analyzeDoctor } from '../src/lib/pipeline/scoring';
 import { extractDoctorPhotoFromMarkdown, searchDoctorPhotos } from '../src/lib/pipeline/image-extractor';
 import { collectAndValidatePhoto } from '../src/lib/pipeline/photo-validator';
+import { enhanceProfilePhoto } from '../src/lib/pipeline/image-processor';
 
 config();
 
@@ -202,8 +203,24 @@ async function processHospital(
         );
 
         if (validationResult.isValid && validationResult.photoUrl) {
-          photoUrl = validationResult.photoUrl;
-          console.log(`  ✅ 검증 통과 (신뢰도: ${validationResult.confidence}%): ${photoUrl.slice(0, 50)}...`);
+          console.log(`  ✅ 검증 통과 (신뢰도: ${validationResult.confidence}%)`);
+
+          // 6. 배경 제거 및 새 배경 합성
+          console.log(`  🎨 이미지 보정 중...`);
+          const enhancedResult = await enhanceProfilePhoto(
+            validationResult.photoUrl,
+            doctorType,
+            process.env.REMOVEBG_API_KEY
+          );
+
+          if (enhancedResult.success && enhancedResult.processedImageUrl) {
+            photoUrl = enhancedResult.processedImageUrl;
+            console.log(`  ✅ 이미지 보정 완료 (배경 제거 + 그라데이션)`);
+          } else {
+            // 보정 실패 시 원본 사용
+            photoUrl = validationResult.photoUrl;
+            console.log(`  ⚠️ 이미지 보정 실패, 원본 사용: ${enhancedResult.error || 'Unknown'}`);
+          }
         } else {
           console.log(`  ⚠️ 검증 실패: ${validationResult.reason}`);
         }
