@@ -5,7 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 // 최고 품질 모델 - 의료관광용 상세 프로파일에 Opus 4.5 사용
-const MODEL_PREMIUM = 'claude-opus-4-5-20250514';
+const MODEL_PREMIUM = 'claude-opus-4-5-20251101';
 
 // ============================================
 // 장비/제품 → 기술/기전 매핑 데이터베이스

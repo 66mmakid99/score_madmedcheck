@@ -4,8 +4,8 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-// 모델 선택 (Vision 작업은 Sonnet 필요)
-const MODEL_VISION = 'claude-3-5-sonnet-20241022';
+// 모델 선택 (Vision 작업은 Sonnet 4 필요)
+const MODEL_VISION = 'claude-sonnet-4-20250514';
 
 interface PhotoValidationResult {
   isValid: boolean;
