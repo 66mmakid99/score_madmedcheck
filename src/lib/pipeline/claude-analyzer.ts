@@ -88,7 +88,7 @@ export async function extractFacts(
   const client = new Anthropic({ apiKey });
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
     messages: [
       {
@@ -190,7 +190,7 @@ ${facts.verifiedFacts.join('\n')}
 코멘트만 출력하세요.`;
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-3-5-sonnet-20241022',
     max_tokens: 200,
     messages: [{ role: 'user', content: prompt }],
   });

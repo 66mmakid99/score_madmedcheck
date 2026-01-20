@@ -22,6 +22,7 @@ export interface Doctor {
   has_phd: boolean;
   sci_papers_first: number;
   sci_papers_co: number;
+  if_bonus_count: number;
   volume_awards: number;
   trainer_count: number;
   signature_cases: number;
