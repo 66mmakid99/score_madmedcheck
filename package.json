@@ -9,15 +9,13 @@
     "preview": "astro preview",
     "deploy": "astro build && wrangler pages deploy dist",
     "pipeline": "tsx scripts/run-pipeline.ts",
-    "pipeline:region": "tsx scripts/run-pipeline.ts --region",
-    "test:supabase": "node test-supabase.js"
+    "pipeline:region": "tsx scripts/run-pipeline.ts --region"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@astrojs/cloudflare": "^8.0.0",
     "@astrojs/react": "^3.0.0",
     "@astrojs/tailwind": "^5.0.0",
-    "@supabase/supabase-js": "^2.39.0",
     "astro": "^4.0.0",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
