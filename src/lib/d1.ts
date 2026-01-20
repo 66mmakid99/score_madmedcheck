@@ -57,6 +57,8 @@ function rowToDoctor(row: Record<string, unknown>, rank?: number): Doctor {
     kol_count: Number(row.kol_count) || 0,
     society_count: Number(row.society_count) || 0,
     book_count: Number(row.book_count) || 0,
+    conference_presentations: Number(row.conference_presentations) || 0,
+    conference_activity_score: Number(row.conference_activity_score) || 0,
     foundation_score: Number(row.foundation_score) || 0,
     academic_score: Number(row.academic_score) || 0,
     clinical_score: Number(row.clinical_score) || 0,
@@ -209,6 +211,9 @@ export interface DoctorUpsertData {
   kol_count: number;
   society_count: number;
   book_count: number;
+  // 학술대회 활동 (보수적 배점)
+  conference_presentations?: number;
+  conference_activity_score?: number;
   foundation_score: number;
   academic_score: number;
   clinical_score: number;
@@ -234,10 +239,11 @@ export async function upsertDoctor(db: D1Database, doctorData: DoctorUpsertData)
           years_of_practice, has_fellow, has_phd,
           sci_papers_first, sci_papers_co, if_bonus_count, volume_awards, trainer_count,
           signature_cases, has_safety_record, kol_count, society_count, book_count,
+          conference_presentations, conference_activity_score,
           foundation_score, academic_score, clinical_score, reputation_score, total_score,
           tier, doctor_type, verified_facts, filtered_claims, radar_chart_data,
           consulting_comment, crawl_status, last_crawled_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(hospital_name, doctor_name) DO UPDATE SET
           hospital_url = excluded.hospital_url,
           region = excluded.region,
@@ -255,6 +261,8 @@ export async function upsertDoctor(db: D1Database, doctorData: DoctorUpsertData)
           kol_count = excluded.kol_count,
           society_count = excluded.society_count,
           book_count = excluded.book_count,
+          conference_presentations = excluded.conference_presentations,
+          conference_activity_score = excluded.conference_activity_score,
           foundation_score = excluded.foundation_score,
           academic_score = excluded.academic_score,
           clinical_score = excluded.clinical_score,
@@ -290,6 +298,8 @@ export async function upsertDoctor(db: D1Database, doctorData: DoctorUpsertData)
         doctorData.kol_count,
         doctorData.society_count,
         doctorData.book_count,
+        doctorData.conference_presentations || 0,
+        doctorData.conference_activity_score || 0,
         doctorData.foundation_score,
         doctorData.academic_score,
         doctorData.clinical_score,
@@ -348,6 +358,8 @@ function getSampleDoctors(): Doctor[] {
       kol_count: 8,
       society_count: 4,
       book_count: 1,
+      conference_presentations: 12,
+      conference_activity_score: 8.5,
       foundation_score: 86,
       academic_score: 175,
       clinical_score: 230,
@@ -381,6 +393,8 @@ function getSampleDoctors(): Doctor[] {
       kol_count: 5,
       society_count: 0,
       book_count: 0,
+      conference_presentations: 25,
+      conference_activity_score: 5.2,
       foundation_score: 40,
       academic_score: 0,
       clinical_score: 250,
@@ -414,6 +428,8 @@ function getSampleDoctors(): Doctor[] {
       kol_count: 3,
       society_count: 5,
       book_count: 2,
+      conference_presentations: 35,
+      conference_activity_score: 18.5,
       foundation_score: 74,
       academic_score: 195,
       clinical_score: 80,

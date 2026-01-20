@@ -30,6 +30,9 @@ export interface Doctor {
   kol_count: number;
   society_count: number;
   book_count: number;
+  // 학술대회 활동 (보수적 배점)
+  conference_presentations: number; // 총 발표 횟수
+  conference_activity_score: number; // 학술활동 점수 (max 50)
   foundation_score: number;
   academic_score: number;
   clinical_score: number;

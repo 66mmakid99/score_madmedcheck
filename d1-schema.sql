@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS doctors (
   society_count INTEGER DEFAULT 0,
   book_count INTEGER DEFAULT 0,
 
+  -- 학술대회 활동 (보수적 배점)
+  conference_presentations INTEGER DEFAULT 0,
+  conference_activity_score REAL DEFAULT 0,
+
   -- 계산된 점수
   foundation_score INTEGER DEFAULT 0,
   academic_score INTEGER DEFAULT 0,
@@ -73,7 +77,27 @@ CREATE TABLE IF NOT EXISTS crawl_logs (
   created_at TEXT DEFAULT (datetime('now'))
 );
 
--- 4. 샘플 데이터 삽입 (테스트용)
+-- 4. 학술대회 발표 기록 테이블
+CREATE TABLE IF NOT EXISTS conference_presentations (
+  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  conference_id TEXT NOT NULL,
+  conference_name TEXT NOT NULL,
+  conference_tier TEXT DEFAULT 'tier3', -- tier1, tier2, tier3, international
+  year INTEGER NOT NULL,
+  presenter_name TEXT NOT NULL,
+  presenter_affiliation TEXT,
+  presentation_type TEXT DEFAULT 'unknown', -- keynote, invited, oral, poster, live, panel, unknown
+  presentation_title TEXT,
+  session_name TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(conference_id, year, presenter_name, presentation_title)
+);
+
+CREATE INDEX IF NOT EXISTS idx_presentations_presenter ON conference_presentations(presenter_name);
+CREATE INDEX IF NOT EXISTS idx_presentations_conference ON conference_presentations(conference_id, year);
+CREATE INDEX IF NOT EXISTS idx_presentations_tier ON conference_presentations(conference_tier);
+
+-- 5. 샘플 데이터 삽입 (테스트용)
 INSERT OR REPLACE INTO doctors (
   id, hospital_name, doctor_name, region, specialist_type,
   years_of_practice, has_fellow, has_phd,
