@@ -15,6 +15,7 @@ export interface Doctor {
   hospital_name: string;
   doctor_name: string | null;
   english_name: string | null; // 영문이름 (Google 검색으로 확인된 경우)
+  photo_url: string | null; // 의사 프로필 사진 URL
   hospital_url: string | null;
   region: string;
   specialist_type: SpecialistType;

@@ -227,10 +227,22 @@ function getTypeLabel(type: string): string {
         >
           <!-- Card Header -->
           <div class="flex items-start gap-4 mb-5">
-            <!-- Avatar -->
-            <div class={`w-14 h-14 rounded-xl bg-gradient-to-br ${getTypeColor(doctor.doctor_type)} flex items-center justify-center text-white text-xl font-bold shadow-soft`}>
-              {getInitials(doctor.doctor_name)}
-            </div>
+            <!-- Avatar / Photo -->
+            {doctor.photo_url ? (
+              <div class="w-14 h-14 rounded-xl overflow-hidden shadow-soft flex-shrink-0">
+                <img
+                  src={doctor.photo_url}
+                  alt={doctor.doctor_name || '의료인'}
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                  onerror="this.parentElement.innerHTML=`<div class='w-full h-full bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center text-white text-xl font-bold'>${this.alt?.charAt(0) || '?'}</div>`"
+                />
+              </div>
+            ) : (
+              <div class={`w-14 h-14 rounded-xl bg-gradient-to-br ${getTypeColor(doctor.doctor_type)} flex items-center justify-center text-white text-xl font-bold shadow-soft flex-shrink-0`}>
+                {getInitials(doctor.doctor_name)}
+              </div>
+            )}
 
             <!-- Info -->
             <div class="flex-1 min-w-0">

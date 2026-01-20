@@ -42,6 +42,7 @@ function rowToDoctor(row: Record<string, unknown>, rank?: number): Doctor {
     hospital_name: String(row.hospital_name || ''),
     doctor_name: row.doctor_name ? String(row.doctor_name) : null,
     english_name: row.english_name ? String(row.english_name) : null,
+    photo_url: row.photo_url ? String(row.photo_url) : null,
     hospital_url: row.hospital_url ? String(row.hospital_url) : null,
     region: String(row.region || ''),
     specialist_type: (row.specialist_type as Doctor['specialist_type']) || '일반의',
@@ -416,6 +417,7 @@ function getSampleDoctors(): Doctor[] {
       hospital_name: '청담 S클리닉',
       doctor_name: '김명의',
       english_name: 'Myeong-Ui Kim',
+      photo_url: null, // 실제 크롤링 시 사진 URL 추가됨
       hospital_url: null,
       region: '청담역',
       specialist_type: '피부과전문의',
@@ -452,6 +454,7 @@ function getSampleDoctors(): Doctor[] {
       hospital_name: '강남 피부과',
       doctor_name: '이실장',
       english_name: 'Siljang Lee',
+      photo_url: null, // 실제 크롤링 시 사진 URL 추가됨
       hospital_url: null,
       region: '강남역',
       specialist_type: '일반의',
@@ -488,6 +491,7 @@ function getSampleDoctors(): Doctor[] {
       hospital_name: '신사 더마클리닉',
       doctor_name: '박교수',
       english_name: 'Kyosu Park',
+      photo_url: null, // 실제 크롤링 시 사진 URL 추가됨
       hospital_url: null,
       region: '신사역',
       specialist_type: '피부과전문의',

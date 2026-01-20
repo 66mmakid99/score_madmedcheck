@@ -6,6 +6,8 @@ import { searchClinicsInRegion } from '../src/lib/pipeline/naver-search';
 import { scrapeUrl, extractDoctorSections } from '../src/lib/pipeline/firecrawl';
 import { extractFacts, generateConsultingComment } from '../src/lib/pipeline/claude-analyzer';
 import { analyzeDoctor } from '../src/lib/pipeline/scoring';
+import { extractDoctorPhotoFromMarkdown, searchDoctorPhotos } from '../src/lib/pipeline/image-extractor';
+import { collectAndValidatePhoto } from '../src/lib/pipeline/photo-validator';
 
 config();
 
@@ -45,6 +47,7 @@ interface DoctorData {
   hospital_name: string;
   doctor_name: string | null;
   english_name: string | null;
+  photo_url: string | null;
   hospital_url: string | null;
   region: string;
   specialist_type: string;
@@ -78,7 +81,7 @@ function generateInsertSQL(doctor: DoctorData): string {
   const escapeSql = (val: string | null) => val ? `'${val.replace(/'/g, "''")}'` : 'NULL';
 
   return `INSERT OR REPLACE INTO doctors (
-    hospital_name, doctor_name, english_name, hospital_url, region,
+    hospital_name, doctor_name, english_name, photo_url, hospital_url, region,
     specialist_type, years_of_practice, has_fellow, has_phd,
     sci_papers_first, sci_papers_co, if_bonus_count,
     volume_awards, trainer_count, signature_cases, has_safety_record,
@@ -90,6 +93,7 @@ function generateInsertSQL(doctor: DoctorData): string {
     ${escapeSql(doctor.hospital_name)},
     ${escapeSql(doctor.doctor_name)},
     ${escapeSql(doctor.english_name)},
+    ${escapeSql(doctor.photo_url)},
     ${escapeSql(doctor.hospital_url)},
     ${escapeSql(doctor.region)},
     ${escapeSql(doctor.specialist_type)},
@@ -172,10 +176,49 @@ async function processHospital(
       config.anthropicApiKey
     );
 
+    // 5. 의사 사진 추출 및 AI 교차검증
+    console.log(`  📷 사진 추출 및 검증 중...`);
+    let photoUrl: string | null = null;
+
+    if (facts.doctorName) {
+      // 웹사이트에서 사진 추출
+      const websitePhoto = extractDoctorPhotoFromMarkdown(scrapedContent, facts.doctorName);
+
+      // 구글 이미지 검색 (교차검증용 여러 결과)
+      const googlePhotos = process.env.SERPAPI_KEY
+        ? await searchDoctorPhotos(facts.doctorName, hospitalName, process.env.SERPAPI_KEY, 3)
+        : [];
+
+      console.log(`  🔍 웹사이트: ${websitePhoto ? '발견' : '없음'}, 구글: ${googlePhotos.length}개`);
+
+      // AI 교차검증 실행
+      if (websitePhoto || googlePhotos.length > 0) {
+        const validationResult = await collectAndValidatePhoto(
+          websitePhoto,
+          googlePhotos,
+          facts.doctorName,
+          hospitalName,
+          config.anthropicApiKey
+        );
+
+        if (validationResult.isValid && validationResult.photoUrl) {
+          photoUrl = validationResult.photoUrl;
+          console.log(`  ✅ 검증 통과 (신뢰도: ${validationResult.confidence}%): ${photoUrl.slice(0, 50)}...`);
+        } else {
+          console.log(`  ⚠️ 검증 실패: ${validationResult.reason}`);
+        }
+      }
+    }
+
+    if (!photoUrl) {
+      console.log(`  ⚠️ 사진 없음 (이니셜로 대체)`);
+    }
+
     return {
       hospital_name: hospitalName,
       doctor_name: facts.doctorName,
       english_name: null,
+      photo_url: photoUrl,
       hospital_url: hospital.url || null,
       region: region.replace(' 피부과', '').replace(' 성형외과', ''),
       specialist_type: facts.specialistType,

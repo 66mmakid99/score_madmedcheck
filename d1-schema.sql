@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS doctors (
   hospital_name TEXT NOT NULL,
   doctor_name TEXT,
   english_name TEXT, -- 영문이름 (Google 검색으로 확인된 경우)
+  photo_url TEXT, -- 의사 프로필 사진 URL
   hospital_url TEXT,
   region TEXT,
 
