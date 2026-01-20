@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS doctors (
   -- 기본 정보
   hospital_name TEXT NOT NULL,
   doctor_name TEXT,
+  english_name TEXT, -- 영문이름 (Google 검색으로 확인된 경우)
   hospital_url TEXT,
   region TEXT,
 
@@ -65,6 +66,8 @@ CREATE INDEX IF NOT EXISTS idx_doctors_total_score ON doctors(total_score DESC);
 CREATE INDEX IF NOT EXISTS idx_doctors_tier ON doctors(tier);
 CREATE INDEX IF NOT EXISTS idx_doctors_region ON doctors(region);
 CREATE INDEX IF NOT EXISTS idx_doctors_type ON doctors(doctor_type);
+CREATE INDEX IF NOT EXISTS idx_doctors_name ON doctors(doctor_name); -- 가나다순 정렬용
+CREATE INDEX IF NOT EXISTS idx_doctors_english_name ON doctors(english_name); -- ABC순 정렬용
 
 -- 3. 크롤링 로그 테이블
 CREATE TABLE IF NOT EXISTS crawl_logs (
@@ -99,7 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_presentations_tier ON conference_presentations(co
 
 -- 5. 샘플 데이터 삽입 (테스트용)
 INSERT OR REPLACE INTO doctors (
-  id, hospital_name, doctor_name, region, specialist_type,
+  id, hospital_name, doctor_name, english_name, region, specialist_type,
   years_of_practice, has_fellow, has_phd,
   sci_papers_first, sci_papers_co, if_bonus_count, volume_awards, trainer_count,
   signature_cases, has_safety_record, kol_count, society_count, book_count,
@@ -108,7 +111,7 @@ INSERT OR REPLACE INTO doctors (
   verified_facts, radar_chart_data, consulting_comment
 ) VALUES
 (
-  '1', '청담 S클리닉', '김명의', '청담역', '피부과전문의',
+  '1', '청담 S클리닉', '김명의', 'Myeong-Ui Kim', '청담역', '피부과전문의',
   18, 1, 1,
   4, 3, 2, 3, 5,
   10000, 1, 8, 4, 1,
@@ -119,7 +122,7 @@ INSERT OR REPLACE INTO doctors (
   '모든 영역에서 균형잡힌 완전체(Hexagon) 유형입니다.'
 ),
 (
-  '2', '강남 피부과', '이실장', '강남역', '일반의',
+  '2', '강남 피부과', '이실장', 'Siljang Lee', '강남역', '일반의',
   15, 0, 0,
   0, 0, 0, 3, 5,
   5000, 1, 5, 0, 0,
@@ -130,7 +133,7 @@ INSERT OR REPLACE INTO doctors (
   '임상 실력이 압도적인 Maestro 유형입니다.'
 ),
 (
-  '3', '신사 더마클리닉', '박교수', '신사역', '피부과전문의',
+  '3', '신사 더마클리닉', '박교수', 'Kyosu Park', '신사역', '피부과전문의',
   12, 1, 1,
   6, 2, 1, 1, 2,
   0, 0, 3, 5, 2,

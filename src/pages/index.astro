@@ -1,73 +1,88 @@
 ---
 // src/pages/index.astro
+// 인명사전 스타일 - 검증된 의료인 목록
 import Layout from '../layouts/Layout.astro';
-import DoctorCard from '../components/DoctorCard.astro';
-import { getD1, getTop100, getStats } from '../lib/d1';
-import { TIER_INFO } from '../lib/types';
+import { getD1, getAllDoctors, getStats } from '../lib/d1';
+import type { Doctor } from '../lib/types';
 
 // Cloudflare D1 바인딩 가져오기
 const runtime = Astro.locals.runtime;
 const db = getD1(runtime);
 
-// D1에서 데이터 조회 (DB 없으면 샘플 데이터 반환)
-const doctors = await getTop100(db);
-const stats = await getStats(db);
+// URL 파라미터에서 필터/정렬 옵션 가져오기
+const url = new URL(Astro.request.url);
+const sortParam = url.searchParams.get('sort') || 'korean';
+const regionParam = url.searchParams.get('region') || '';
+const specialtyParam = url.searchParams.get('specialty') || '';
+const searchParam = url.searchParams.get('q') || '';
 
-// 현재 날짜
-const currentDate = new Date().toLocaleDateString('ko-KR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
+// D1에서 데이터 조회
+const doctors = await getAllDoctors(db, {
+  sort: sortParam as 'korean' | 'english' | 'region' | 'specialty',
+  region: regionParam || undefined,
+  specialty: specialtyParam || undefined,
+  search: searchParam || undefined,
 });
 
-const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+const stats = await getStats(db);
+
+// 지역 목록 (필터용)
+const regions = [...new Set(doctors.map(d => d.region).filter(Boolean))].sort();
+const specialties = ['피부과전문의', '성형외과전문의', '일반의', '타과전문의'];
+
+// 레이더 데이터에서 가장 높은 영역 찾기
+function getTopStrength(doctor: Doctor): string {
+  const data = doctor.radar_chart_data;
+  const entries = [
+    { key: '학술', value: data.academic },
+    { key: '임상', value: data.clinical },
+    { key: '경력', value: data.career },
+    { key: '안전', value: data.safety },
+    { key: '활동', value: data.activity },
+  ];
+  const top = entries.sort((a, b) => b.value - a.value)[0];
+  return top.key;
+}
+
+// 강점 영역 한글 설명
+function getStrengthDescription(doctor: Doctor): string {
+  const strength = getTopStrength(doctor);
+  const typeDescriptions: Record<string, string> = {
+    '학술': '학술 연구에 강점을 가진',
+    '임상': '임상 경험이 풍부한',
+    '경력': '오랜 경력을 갖춘',
+    '안전': '안전한 시술을 추구하는',
+    '활동': '활발한 학회 활동을 하는',
+  };
+  return typeDescriptions[strength] || '';
+}
 ---
 
-<Layout title="TOP 100 의사 랭킹">
-  <!-- Chart Header: Billboard style -->
+<Layout title="검증된 의료인 인명부 - MadMedCheck">
+  <!-- Header Section -->
   <div class="mb-8">
-    <!-- Title Section -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-      <div>
-        <div class="text-sm text-mmc-secondary font-medium mb-1">
-          The Doctor Chart
-        </div>
-        <h1 class="text-4xl md:text-5xl font-display font-black tracking-tight">
-          TOP 100
-        </h1>
-        <p class="text-mmc-secondary mt-2">
-          마케팅이 아닌 실력으로 검증된 의사 랭킹
-        </p>
+    <div class="mb-6">
+      <div class="text-sm text-mmc-secondary font-medium mb-1">
+        Verified Medical Professionals
       </div>
-
-      <div class="flex items-center gap-6 text-sm">
-        <div class="text-right">
-          <div class="text-mmc-secondary">차트 날짜</div>
-          <div class="font-semibold">{currentDate}</div>
-        </div>
-        <div class="text-right">
-          <div class="text-mmc-secondary">Week</div>
-          <div class="font-display font-bold text-lg">{weekNumber}</div>
-        </div>
-      </div>
+      <h1 class="text-3xl md:text-4xl font-display font-black tracking-tight">
+        검증된 의료인 인명부
+      </h1>
+      <p class="text-mmc-secondary mt-2">
+        제3자 검증 데이터 기반 의료인 정보
+      </p>
     </div>
 
-    <!-- Stats Bar -->
+    <!-- Stats Bar (점수/순위 제거) -->
     <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div class="grid grid-cols-3 gap-4 text-center">
         <div>
           <div class="text-2xl font-display font-bold">{stats.total}</div>
-          <div class="text-mmc-secondary text-sm">검증된 의사</div>
+          <div class="text-mmc-secondary text-sm">검증된 의료인</div>
         </div>
         <div>
-          <div class="text-2xl font-display font-bold text-tier-laureate">
-            {stats.tierCounts?.Laureate || 0}
-          </div>
-          <div class="text-mmc-secondary text-sm">Laureate 등급</div>
-        </div>
-        <div>
-          <div class="text-2xl font-display font-bold">{stats.avgScore}</div>
-          <div class="text-mmc-secondary text-sm">평균 점수</div>
+          <div class="text-2xl font-display font-bold">{regions.length}</div>
+          <div class="text-mmc-secondary text-sm">지역</div>
         </div>
         <div>
           <div class="text-2xl font-display font-bold">Weekly</div>
@@ -77,54 +92,157 @@ const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFull
     </div>
   </div>
 
-  <!-- Tier Legend -->
-  <div class="flex flex-wrap items-center gap-4 mb-6 text-sm">
-    <span class="text-mmc-secondary font-medium">등급:</span>
-    {Object.entries(TIER_INFO).map(([tier, info]) => (
-      <div class="flex items-center gap-1.5">
-        <span class={`w-2.5 h-2.5 rounded-full bg-tier-${tier.toLowerCase()}`}></span>
-        <span class="font-medium">{info.label}</span>
-        <span class="text-mmc-secondary">({info.labelKo})</span>
+  <!-- Search & Filter Section -->
+  <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4 mb-6">
+    <form method="GET" class="space-y-4">
+      <!-- Search -->
+      <div>
+        <input
+          type="text"
+          name="q"
+          placeholder="의료인 이름, 병원명으로 검색..."
+          value={searchParam}
+          class="w-full px-4 py-2.5 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text placeholder-mmc-secondary focus:outline-none focus:ring-2 focus:ring-mmc-accent"
+        />
       </div>
-    ))}
+
+      <!-- Filters -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Sort -->
+        <select
+          name="sort"
+          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
+        >
+          <option value="korean" selected={sortParam === 'korean'}>가나다순</option>
+          <option value="english" selected={sortParam === 'english'}>ABC순</option>
+          <option value="region" selected={sortParam === 'region'}>지역별</option>
+          <option value="specialty" selected={sortParam === 'specialty'}>전문분야별</option>
+        </select>
+
+        <!-- Region Filter -->
+        <select
+          name="region"
+          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
+        >
+          <option value="">전체 지역</option>
+          {regions.map(region => (
+            <option value={region} selected={regionParam === region}>{region}</option>
+          ))}
+        </select>
+
+        <!-- Specialty Filter -->
+        <select
+          name="specialty"
+          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
+        >
+          <option value="">전체 전문분야</option>
+          {specialties.map(spec => (
+            <option value={spec} selected={specialtyParam === spec}>{spec}</option>
+          ))}
+        </select>
+
+        <!-- Search Button -->
+        <button
+          type="submit"
+          class="px-4 py-2 bg-mmc-accent text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
+        >
+          검색
+        </button>
+      </div>
+    </form>
   </div>
 
-  <!-- Chart Table Header -->
-  <div class="bg-mmc-surface border border-mmc-border rounded-t-lg">
-    <div class="grid grid-cols-12 gap-4 px-4 py-3 text-xs font-semibold text-mmc-secondary uppercase tracking-wider">
-      <div class="col-span-1 text-center">#</div>
-      <div class="col-span-5 md:col-span-4">의료인</div>
-      <div class="col-span-3 md:col-span-4 hidden md:block">세부 정보</div>
-      <div class="col-span-3 md:col-span-2 text-center">등급</div>
-      <div class="col-span-3 md:col-span-1 text-right">점수</div>
-    </div>
+  <!-- Results Count -->
+  <div class="mb-4 text-sm text-mmc-secondary">
+    총 <span class="font-semibold text-mmc-text">{doctors.length}</span>명의 검증된 의료인
   </div>
 
-  <!-- Doctor List -->
-  <div class="border-x border-b border-mmc-border rounded-b-lg overflow-hidden">
-    {doctors.map((doctor, index) => (
-      <DoctorCard doctor={doctor} isFirst={index === 0} isLast={index === doctors.length - 1} />
+  <!-- Doctor Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {doctors.map((doctor) => (
+      <a
+        href={`/doctor/${doctor.id}`}
+        class="block bg-mmc-surface border border-mmc-border rounded-lg p-5 hover:border-mmc-accent hover:shadow-lg transition group"
+      >
+        <!-- Doctor Header -->
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h3 class="font-bold text-lg group-hover:text-mmc-accent transition">
+              {doctor.doctor_name || '미공개'}
+            </h3>
+            {doctor.english_name && (
+              <div class="text-xs text-mmc-secondary">{doctor.english_name}</div>
+            )}
+          </div>
+          <span class="text-xs px-2 py-1 rounded bg-mmc-border text-mmc-secondary">
+            {doctor.specialist_type}
+          </span>
+        </div>
+
+        <!-- Hospital & Region -->
+        <div class="text-sm text-mmc-secondary mb-4">
+          <div>{doctor.hospital_name}</div>
+          <div>{doctor.region} · 경력 {doctor.years_of_practice}년</div>
+        </div>
+
+        <!-- Strength Gauges (점수 대신 게이지 바) -->
+        <div class="space-y-2 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-mmc-secondary w-10">학술</span>
+            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
+              <div
+                class="h-full bg-blue-500 rounded-full"
+                style={`width: ${doctor.radar_chart_data.academic}%`}
+              ></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-mmc-secondary w-10">임상</span>
+            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
+              <div
+                class="h-full bg-green-500 rounded-full"
+                style={`width: ${doctor.radar_chart_data.clinical}%`}
+              ></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-mmc-secondary w-10">활동</span>
+            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
+              <div
+                class="h-full bg-purple-500 rounded-full"
+                style={`width: ${doctor.radar_chart_data.activity}%`}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strength Description -->
+        <div class="text-sm text-mmc-accent">
+          {getStrengthDescription(doctor)} {doctor.specialist_type}
+        </div>
+      </a>
     ))}
   </div>
 
   {doctors.length === 0 && (
     <div class="text-center py-20 text-mmc-secondary border border-mmc-border rounded-lg bg-mmc-surface">
-      <p>데이터를 불러오는 중...</p>
+      <p class="mb-2">검색 결과가 없습니다.</p>
+      <a href="/" class="text-mmc-accent hover:underline">전체 목록 보기</a>
     </div>
   )}
 
   <!-- Data Source Notice -->
   <div class="mt-8 text-center">
     <p class="text-sm text-mmc-secondary">
-      본 차트는 SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만을 기반으로 합니다.
+      본 인명부는 SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만을 기반으로 합니다.
       <a href="/about" class="text-mmc-accent hover:underline">평가 기준 자세히 보기</a>
     </p>
   </div>
 
   <!-- CTA Section -->
   <section class="mt-12 bg-mmc-surface border border-mmc-border rounded-lg p-8 text-center">
-    <h3 class="text-xl font-bold mb-2">의사이신가요?</h3>
-    <p class="text-mmc-secondary mb-4">객관적 데이터를 제출하고 검증받으세요.</p>
+    <h3 class="text-xl font-bold mb-2">의료인이신가요?</h3>
+    <p class="text-mmc-secondary mb-4">객관적 데이터를 제출하고 인명부에 등재되세요.</p>
     <a
       href="/for-doctors"
       class="inline-block bg-mmc-accent text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
@@ -133,11 +251,3 @@ const weekNumber = Math.ceil((new Date().getTime() - new Date(new Date().getFull
     </a>
   </section>
 </Layout>
-
-<style>
-  /* Tier color dots */
-  .bg-tier-laureate { background-color: #b8860b; }
-  .bg-tier-authority { background-color: #7c3aed; }
-  .bg-tier-master { background-color: #2563eb; }
-  .bg-tier-diplomate { background-color: #059669; }
-</style>

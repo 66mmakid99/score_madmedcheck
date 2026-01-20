@@ -9,10 +9,10 @@ interface Props {
   structuredData?: object;
 }
 
-const siteUrl = 'https://score-madmedcheck2.pages.dev';
+const siteUrl = 'https://score-madmedcheck.pages.dev';
 const {
   title,
-  description = 'AI가 검증한 실력있는 의사 TOP 100 - 마케팅이 아닌 객관적 데이터로 평가한 의료인 랭킹',
+  description = '제3자 검증 데이터 기반 의료인 정보 - 객관적으로 검증된 의료인 인명부',
   ogImage = `${siteUrl}/og-image.png`,
   ogType = 'website',
   canonicalUrl = Astro.url.href,
@@ -27,17 +27,17 @@ const defaultStructuredData = {
   "@type": "WebSite",
   "name": "MadMedCheck",
   "alternateName": "매드메드체크",
-  "description": "AI 기반 의료인 검증 시스템 - SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만으로 평가한 실력있는 의사 TOP 100",
+  "description": "제3자 검증 데이터 기반 의료인 인명부 - SCI 논문, 제조사 인증, 학회 활동 등 객관적 데이터로 검증된 의료인 정보",
   "url": siteUrl,
   "potentialAction": {
     "@type": "SearchAction",
-    "target": `${siteUrl}/search?q={search_term_string}`,
+    "target": `${siteUrl}/?q={search_term_string}`,
     "query-input": "required name=search_term_string"
   },
   "publisher": {
     "@type": "Organization",
     "name": "MadMedCheck",
-    "description": "객관적 데이터 기반 의료인 평가 플랫폼",
+    "description": "제3자 검증 기반 의료인 정보 서비스",
     "url": siteUrl
   }
 };
@@ -146,16 +146,16 @@ const currentDate = new Date().toLocaleDateString('ko-KR', {
               <span class="font-display font-black text-xl tracking-tight">
                 MADMEDCHECK
               </span>
-              <div class="text-xs text-mmc-secondary -mt-0.5">The Doctor Chart</div>
+              <div class="text-xs text-mmc-secondary -mt-0.5">Verified Medical Professionals</div>
             </div>
           </a>
 
           <nav class="flex items-center gap-8">
             <a href="/" class="text-sm font-semibold text-mmc-primary hover:text-mmc-accent transition">
-              TOP 100
+              인명부
             </a>
             <a href="/about" class="text-sm font-semibold text-mmc-secondary hover:text-mmc-accent transition">
-              평가기준
+              검증기준
             </a>
           </nav>
         </div>
