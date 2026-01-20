@@ -161,12 +161,13 @@ export interface PresenterActivitySummary {
 }
 
 /**
- * 학술활동 점수 산정 (보수적 기준)
+ * 학술활동 점수 산정 (보수적 기준 + 감가상각)
  *
  * 배점 원칙:
  * - 학술발표는 빈번하므로 1회당 점수를 낮게 설정
  * - 한 학회에서 10회 발표해도 과도한 점수가 나오지 않도록 연간 상한 설정
  * - 학회 등급별 차등, 발표 유형별 차등
+ * - **감가상각 적용**: 오래된 활동은 가치가 감소
  *
  * Tier별 기본 점수 (1회당):
  * - Tier 1 (대한피부과/성형외과학회): 0.5점
@@ -182,12 +183,25 @@ export interface PresenterActivitySummary {
  * - panel (좌장): x0.5
  * - poster: x0.3
  *
+ * 감가상각률 (연도별):
+ * - 올해: 100%
+ * - 1년 전: 60%
+ * - 2년 전: 36%
+ * - 3년 전: 20%
+ * - 4년 이상: 0% (만료)
+ *
+ * 추가 조정:
+ * - 비활동 페널티: 최근 1년 활동 없으면 전체 50% 추가 감가
+ * - 연속 활동 보너스: 2년 연속 +15%, 3년 연속 +30%
+ *
  * 상한:
  * - 연간 최대: 10점
- * - 단일 학회 기간 최대: 3점 (같은 학회에서 여러번 발표해도)
+ * - 단일 학회 기간 최대: 3점
  * - 총 학술활동 점수 상한: 50점
  */
 export function calculateActivityScore(summary: PresenterActivitySummary): number {
+  const currentYear = new Date().getFullYear();
+
   const TIER_BASE_SCORE: Record<ConferenceTier, number> = {
     tier1: 0.5,
     tier2: 0.3,
@@ -205,39 +219,88 @@ export function calculateActivityScore(summary: PresenterActivitySummary): numbe
     unknown: 0.5,
   };
 
+  // 감가상각률 (연도 차이별)
+  const DEPRECIATION_RATE: Record<number, number> = {
+    0: 1.0, // 올해: 100%
+    1: 0.6, // 1년 전: 60%
+    2: 0.36, // 2년 전: 36%
+    3: 0.2, // 3년 전: 20%
+    // 4년 이상: 0%
+  };
+
   const YEARLY_CAP = 10; // 연간 최대 점수
-  const SINGLE_CONFERENCE_CAP = 3; // 단일 학회 기간 최대 점수
   const TOTAL_CAP = 50; // 총 상한
 
-  // 학회별, 연도별로 그룹핑해서 계산 (상세 데이터가 있다면)
-  // 여기서는 집계 데이터 기준으로 단순 계산
+  // 연도별 점수 계산 (감가상각 적용)
   let totalScore = 0;
+  const yearsWithActivity: number[] = [];
 
-  // Tier별로 계산
-  for (const tier of Object.keys(summary.byTier) as ConferenceTier[]) {
-    const count = summary.byTier[tier] || 0;
-    const baseScore = TIER_BASE_SCORE[tier] || 0.3;
+  if (summary.byYear && Object.keys(summary.byYear).length > 0) {
+    for (const [yearStr, count] of Object.entries(summary.byYear)) {
+      const year = parseInt(yearStr);
+      const yearDiff = currentYear - year;
 
-    // 평균 가중치 적용 (발표 유형 분포 모르면 1.0 가정)
-    let avgMultiplier = 1.0;
-    if (summary.byType) {
-      const typeTotal = Object.values(summary.byType).reduce((a, b) => a + b, 0);
-      if (typeTotal > 0) {
-        avgMultiplier =
-          Object.entries(summary.byType).reduce((sum, [type, cnt]) => {
-            return sum + TYPE_MULTIPLIER[type as PresentationType] * cnt;
-          }, 0) / typeTotal;
+      // 4년 이상은 만료 (0점)
+      if (yearDiff >= 4) continue;
+
+      yearsWithActivity.push(year);
+
+      // 감가상각률 적용
+      const depreciationRate = DEPRECIATION_RATE[yearDiff] || 0;
+
+      // 평균 가중치 계산
+      let avgMultiplier = 1.0;
+      if (summary.byType) {
+        const typeTotal = Object.values(summary.byType).reduce((a, b) => a + b, 0);
+        if (typeTotal > 0) {
+          avgMultiplier =
+            Object.entries(summary.byType).reduce((sum, [type, cnt]) => {
+              return sum + TYPE_MULTIPLIER[type as PresentationType] * cnt;
+            }, 0) / typeTotal;
+        }
       }
-    }
 
-    totalScore += count * baseScore * avgMultiplier;
+      // Tier별 평균 점수 계산 (연도별 상세 데이터 없으면 전체 비율로 추정)
+      let avgTierScore = 0.3; // 기본값
+      if (summary.byTier) {
+        const tierTotal = Object.values(summary.byTier).reduce((a, b) => a + b, 0);
+        if (tierTotal > 0) {
+          avgTierScore =
+            Object.entries(summary.byTier).reduce((sum, [tier, cnt]) => {
+              return sum + (TIER_BASE_SCORE[tier as ConferenceTier] || 0.3) * cnt;
+            }, 0) / tierTotal;
+        }
+      }
+
+      // 해당 연도 점수 = 발표 수 × 평균 Tier 점수 × 유형 가중치 × 감가상각률
+      let yearScore = count * avgTierScore * avgMultiplier * depreciationRate;
+
+      // 연간 상한 적용
+      yearScore = Math.min(yearScore, YEARLY_CAP);
+
+      totalScore += yearScore;
+    }
+  } else {
+    // 연도별 데이터 없으면 기존 방식으로 계산 (전체에 50% 감가 적용)
+    for (const tier of Object.keys(summary.byTier) as ConferenceTier[]) {
+      const count = summary.byTier[tier] || 0;
+      const baseScore = TIER_BASE_SCORE[tier] || 0.3;
+      totalScore += count * baseScore * 0.5; // 50% 감가 기본 적용
+    }
   }
 
-  // 연간 상한 적용 (연도별 데이터가 있으면)
-  if (summary.byYear && Object.keys(summary.byYear).length > 0) {
-    const years = Object.keys(summary.byYear).length;
-    const maxPossible = years * YEARLY_CAP;
-    totalScore = Math.min(totalScore, maxPossible);
+  // 비활동 페널티: 최근 1년간 활동 없으면 전체 50% 추가 감가
+  const hasRecentActivity = yearsWithActivity.includes(currentYear) || yearsWithActivity.includes(currentYear - 1);
+  if (!hasRecentActivity && yearsWithActivity.length > 0) {
+    totalScore *= 0.5;
+  }
+
+  // 연속 활동 보너스
+  const consecutiveYears = countConsecutiveYears(yearsWithActivity, currentYear);
+  if (consecutiveYears >= 3) {
+    totalScore *= 1.3; // 3년 연속: +30%
+  } else if (consecutiveYears >= 2) {
+    totalScore *= 1.15; // 2년 연속: +15%
   }
 
   // 총 상한 적용
@@ -245,6 +308,27 @@ export function calculateActivityScore(summary: PresenterActivitySummary): numbe
 
   // 소수점 한자리까지
   return Math.round(totalScore * 10) / 10;
+}
+
+/**
+ * 연속 활동 연수 계산
+ */
+function countConsecutiveYears(years: number[], currentYear: number): number {
+  if (years.length === 0) return 0;
+
+  const sortedYears = [...years].sort((a, b) => b - a); // 내림차순
+  let consecutive = 0;
+
+  for (let i = 0; i <= 3; i++) {
+    const targetYear = currentYear - i;
+    if (sortedYears.includes(targetYear)) {
+      consecutive++;
+    } else {
+      break; // 연속 끊김
+    }
+  }
+
+  return consecutive;
 }
 
 /**
