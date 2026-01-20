@@ -1,11 +1,14 @@
 // src/pages/sitemap.xml.ts
 import type { APIRoute } from 'astro';
-import { getAllDoctorIds } from '../lib/supabase';
+import { getD1, getAllDoctorIds } from '../lib/d1';
 
 const siteUrl = 'https://score-madmedcheck2.pages.dev';
 
-export const GET: APIRoute = async () => {
-  const doctorIds = await getAllDoctorIds();
+export const GET: APIRoute = async ({ locals }) => {
+  // Cloudflare D1 바인딩
+  const runtime = (locals as { runtime?: { env?: { DB?: unknown } } }).runtime;
+  const db = getD1(runtime);
+  const doctorIds = await getAllDoctorIds(db);
 
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'daily' },

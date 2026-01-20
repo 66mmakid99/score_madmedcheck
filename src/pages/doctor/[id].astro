@@ -4,22 +4,24 @@ import Layout from '../../layouts/Layout.astro';
 import TierBadge from '../../components/TierBadge.astro';
 import TypeBadge from '../../components/TypeBadge.astro';
 import RadarChart from '../../components/RadarChart';
-import { getDoctorById, getAllDoctorIds } from '../../lib/supabase';
+import { getD1, getDoctorById } from '../../lib/d1';
 import { TIER_INFO, TYPE_INFO } from '../../lib/types';
 
-export const prerender = true;
+// SSR 모드 (D1은 런타임 바인딩 필요)
+export const prerender = false;
 
-export async function getStaticPaths() {
-  const ids = await getAllDoctorIds();
-
-  // 샘플 데이터용 (DB 연결 전)
-  const sampleIds = ids.length > 0 ? ids : ['1', '2', '3'];
-
-  return sampleIds.map((id) => ({ params: { id } }));
-}
+// Cloudflare D1 바인딩
+const runtime = Astro.locals.runtime;
+const db = getD1(runtime);
 
 const { id } = Astro.params;
-const doctor = await getDoctorById(id);
+
+// ID가 없으면 404
+if (!id) {
+  return Astro.redirect('/404');
+}
+
+const doctor = await getDoctorById(db, id);
 
 // 샘플 데이터 (DB 연결 전 테스트용)
 const sampleDoctor = doctor || {
