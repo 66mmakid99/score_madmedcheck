@@ -1,11 +1,8 @@
 // src/lib/pipeline/specialty-analyzer.ts
 // 의사 전문 시술분야 분석 모듈 - 의료관광 고객용 프로파일링
-// Opus 4.5 사용 - 복잡한 인물/클리닉 프로파일 분석
+// Groq Llama 3.3 70B 사용 - 저비용 고성능
 
-import Anthropic from '@anthropic-ai/sdk';
-
-// 최고 품질 모델 - 의료관광용 상세 프로파일에 Opus 4.5 사용
-const MODEL_PREMIUM = 'claude-opus-4-5-20251101';
+import { groqChat } from './groq-client';
 
 // ============================================
 // 장비/제품 → 기술/기전 매핑 데이터베이스
@@ -589,7 +586,7 @@ export async function analyzeClinicProfileWithAI(
   hospitalName: string,
   kolInfo: Array<{ product: string; technologies: string[]; mechanisms: string[] }>,
   equipment: Array<{ device: string; technologies: string[]; mechanisms: string[] }>,
-  anthropicApiKey: string
+  groqApiKey: string // Groq API Key 사용
 ): Promise<{
   tagline: string;
   taglineEn: string;
@@ -618,22 +615,13 @@ export async function analyzeClinicProfileWithAI(
     recommendedFor: string[];
   };
 }> {
-  const client = new Anthropic({ apiKey: anthropicApiKey });
-
   const equipmentSummary = equipment.map((e) => `${e.device}: ${e.mechanisms.join(', ')}`).join('\n');
   const kolSummary = kolInfo.map((k) => `${k.product}: ${k.mechanisms.join(', ')}`).join('\n');
 
-  try {
-    // Opus 4.5 사용 - 의료관광용 상세 클리닉 프로파일은 최고 품질 필요
-    const response = await client.messages.create({
-      model: MODEL_PREMIUM,
-      max_tokens: 2000,
-      messages: [
-        {
-          role: 'user',
-          content: `당신은 의료관광 컨설턴트입니다. 아래 클리닉 정보를 분석하여 해외 환자(특히 영어권, 일본, 중국)에게 제공할 상세한 클리닉 프로파일을 작성해주세요.
+  const systemPrompt = `당신은 의료관광 컨설턴트입니다. 클리닉 정보를 분석하여 해외 환자에게 제공할 클리닉 프로파일을 JSON으로 작성합니다.
+반드시 JSON만 출력하세요. 다른 설명은 하지 마세요.`;
 
-=== 클리닉 정보 ===
+  const userPrompt = `=== 클리닉 정보 ===
 의사/원장: ${doctorName || '미확인'}
 병원명: ${hospitalName}
 
@@ -646,63 +634,39 @@ ${equipmentSummary || '정보 없음'}
 === 홈페이지 콘텐츠 ===
 ${scrapedContent.slice(0, 3000)}
 
-=== 분석 요청 ===
-다음 JSON 형식으로 상세히 분석해주세요:
-
+=== 출력 형식 (JSON) ===
 {
-  "tagline": "한글 전문분야 태그라인 (15자 이내, 예: 리프팅/타이트닝 명의)",
-  "taglineEn": "English specialty tagline (e.g., Lifting & Tightening Expert)",
-  "additionalSpecialties": ["추가 발견된 전문분야"],
-
+  "tagline": "한글 태그라인 15자 이내",
+  "taglineEn": "English tagline",
+  "additionalSpecialties": ["전문분야"],
   "clinicPositioning": {
-    "philosophy": "클리닉의 진료 철학 (예: 정확한 진단 기반 맞춤 치료)",
-    "concept": "핵심 컨셉 (예: 토탈 스킨케어 & 안티에이징 솔루션)",
-    "differentiators": ["차별화 포인트 1", "차별화 포인트 2", "차별화 포인트 3"]
+    "philosophy": "진료 철학",
+    "concept": "핵심 컨셉",
+    "differentiators": ["차별화 포인트"]
   },
-
   "servicePortfolio": [
-    {
-      "category": "카테고리명 (예: 리프팅/안티에이징)",
-      "categoryEn": "English category (e.g., Lifting / Anti-aging)",
-      "services": ["시술1", "시술2", "시술3"],
-      "featured": true
-    }
+    {"category": "카테고리", "categoryEn": "Category", "services": ["시술"], "featured": true}
   ],
-
   "signaturePrograms": [
-    {
-      "name": "시그니처 프로그램명",
-      "description": "프로그램 설명",
-      "targetConcerns": ["대상 고민1", "대상 고민2"]
-    }
+    {"name": "프로그램명", "description": "설명", "targetConcerns": ["대상 고민"]}
   ],
-
-  "targetSegments": ["타겟 고객층 1", "타겟 고객층 2"],
-
+  "targetSegments": ["타겟 고객층"],
   "medicalTourismSummary": {
-    "headline": "One-line headline for international patients",
-    "expertise": ["Expertise 1", "Expertise 2", "Expertise 3"],
-    "uniqueSellingPoints": ["USP 1", "USP 2"],
-    "recommendedFor": ["Ideal for patients seeking...", "Best for..."]
+    "headline": "English headline",
+    "expertise": ["Expertise"],
+    "uniqueSellingPoints": ["USP"],
+    "recommendedFor": ["Recommended for..."]
   }
-}
+}`;
 
-분석 시 유의사항:
-1. 홈페이지에서 강조하는 키워드와 문구를 반영
-2. 장비 구성에서 주력 시술 분야를 추론
-3. KOL 인증이 있으면 해당 분야 전문성 강조
-4. 의료관광 고객에게 어필할 수 있는 포인트 부각
-5. 서비스 포트폴리오는 주력 분야(featured=true)를 먼저 배치`,
-        },
-      ],
+  try {
+    // Groq Llama 3.3 70B 사용 - 저비용 고성능
+    const responseText = await groqChat(groqApiKey, systemPrompt, userPrompt, {
+      model: 'versatile',
+      maxTokens: 2000,
     });
 
-    const content = response.content[0];
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type');
-    }
-
-    const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('JSON not found');
     }
