@@ -2,16 +2,7 @@ name = "madmedcheck"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "dist"
 
-# D1 데이터베이스 바인딩
-# 1. 먼저 D1 생성: wrangler d1 create madmedcheck-db
-# 2. 생성된 database_id를 아래에 입력
-# 3. 스키마 실행: wrangler d1 execute madmedcheck-db --file=./d1-schema.sql
 [[d1_databases]]
 binding = "DB"
 database_name = "madmedcheck-db"
-database_id = "" # wrangler d1 create 후 여기에 ID 입력
-
-# 환경변수 (파이프라인용 - 옵션)
-[vars]
-# Supabase는 더 이상 사용하지 않음
-# 파이프라인에서 사용할 API 키는 Cloudflare Pages 환경변수에서 설정
+database_id = "9f2b717c-47a7-4066-9a53-87ad3b5f1758"
