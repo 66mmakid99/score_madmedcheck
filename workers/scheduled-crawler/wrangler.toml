@@ -1,0 +1,33 @@
+# workers/scheduled-crawler/wrangler.toml
+# MadMedCheck 스케줄 크롤러 Worker 설정
+
+name = "madmedcheck-crawler"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+# 스케줄 트리거 - 매주 월요일 오전 9시 (KST = UTC+9)
+# cron: 분 시 일 월 요일
+[triggers]
+crons = [
+  "0 0 * * 1",   # 매주 월요일 09:00 KST (00:00 UTC)
+  "0 12 * * 3",  # 매주 수요일 21:00 KST (12:00 UTC) - 추가 업데이트
+]
+
+# D1 데이터베이스 바인딩
+[[d1_databases]]
+binding = "DB"
+database_name = "madmedcheck-db"
+database_id = "your-database-id"  # wrangler d1 create 후 업데이트
+
+# 환경변수 (Cloudflare 대시보드에서 설정)
+[vars]
+# 민감한 정보는 대시보드의 Secrets에서 설정
+# NAVER_CLIENT_ID = "..."
+# NAVER_CLIENT_SECRET = "..."
+# FIRECRAWL_API_KEY = "..."
+# ANTHROPIC_API_KEY = "..."
+
+# 로컬 개발 설정
+[dev]
+port = 8787
+local_protocol = "http"
