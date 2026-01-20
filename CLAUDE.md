@@ -31,6 +31,10 @@
 - [x] **학회 크롤러 + 보수적 배점 시스템**
 - [x] AEO/GEO/SEO 최적화
 - [x] 샘플 데이터 3건
+- [x] **의사 프로필 사진 추출** (웹사이트 + 구글 이미지)
+- [x] **AI 교차검증** (Claude Vision으로 동일 인물 확인)
+- [x] **배경 제거 + 그라데이션 합성** (Remove.bg + Sharp)
+- [x] **전문분야 프로파일링** (의료관광용 - KOL/장비 기반 분석)
 
 ## 다음 할 일 (우선순위)
 1. **D1 데이터베이스 초기화**
@@ -65,7 +69,11 @@ src/
 │       ├── firecrawl.ts     # 웹 스크래핑
 │       ├── claude-analyzer.ts # AI 분석
 │       ├── scoring.ts       # 점수 계산
-│       └── conference-crawler.ts # 학회 크롤러
+│       ├── conference-crawler.ts # 학회 크롤러
+│       ├── image-extractor.ts # 의사 사진 추출
+│       ├── photo-validator.ts # AI 사진 교차검증
+│       ├── image-processor.ts # 배경 제거 + 합성
+│       └── specialty-analyzer.ts # 전문분야 분석 (의료관광용)
 d1-schema.sql                # D1 SQLite 스키마
 wrangler.toml                # Cloudflare 설정
 ```
@@ -111,10 +119,14 @@ Conference Activity (학술대회 발표) - 보수적 배점
 ## 환경변수 필요
 ```
 # D1은 Cloudflare 자동 바인딩 (환경변수 불필요)
-NAVER_CLIENT_ID=
+NAVER_CLIENT_ID=       # 네이버 지도 API
 NAVER_CLIENT_SECRET=
-FIRECRAWL_API_KEY=
-ANTHROPIC_API_KEY=
+FIRECRAWL_API_KEY=     # 웹 스크래핑
+ANTHROPIC_API_KEY=     # AI 분석 + 사진 교차검증
+
+# 선택사항
+SERPAPI_KEY=           # 구글 이미지 검색 (사진 교차검증용)
+REMOVEBG_API_KEY=      # 배경 제거 (없으면 비네팅만 적용)
 ```
 
 ## 명령어

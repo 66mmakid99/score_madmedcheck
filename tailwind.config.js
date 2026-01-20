@@ -4,42 +4,64 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Billboard-inspired professional palette
+        // Modern Medical Directory Palette
         mmc: {
-          bg: '#ffffff',
-          surface: '#f8f9fa',
-          border: '#e5e7eb',
-          primary: '#111827',
-          secondary: '#6b7280',
-          accent: '#dc2626', // Billboard red
+          bg: '#f8fafc',
+          surface: '#ffffff',
+          border: '#e2e8f0',
+          primary: '#0f172a',
+          secondary: '#64748b',
+          muted: '#94a3b8',
+          accent: '#0891b2', // Teal/Cyan - trustworthy, medical
+          'accent-light': '#ecfeff',
+          'accent-dark': '#0e7490',
+          success: '#10b981',
+          warning: '#f59e0b',
         },
-        tier: {
-          laureate: '#b8860b', // Dark gold - prestigious
-          authority: '#7c3aed', // Purple
-          master: '#2563eb', // Blue
-          diplomate: '#059669', // Green
+        // Strength colors for gauges
+        strength: {
+          academic: '#6366f1', // Indigo
+          clinical: '#10b981', // Emerald
+          career: '#f59e0b',   // Amber
+          safety: '#06b6d4',   // Cyan
+          activity: '#8b5cf6', // Violet
         },
+        // Doctor type colors
         type: {
-          scholar: '#1d4ed8',
-          maestro: '#dc2626',
-          pioneer: '#ea580c',
-          guardian: '#059669',
-          hexagon: '#7c3aed',
+          scholar: '#6366f1',
+          maestro: '#ef4444',
+          pioneer: '#f97316',
+          guardian: '#10b981',
+          hexagon: '#8b5cf6',
         },
-        rank: {
-          gold: '#b8860b',
-          silver: '#6b7280',
-          bronze: '#b45309',
-        }
       },
       fontFamily: {
         sans: ['Pretendard', 'system-ui', 'sans-serif'],
         display: ['Montserrat', 'sans-serif'],
       },
       boxShadow: {
-        'chart': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'chart-hover': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-      }
+        'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+        'soft-lg': '0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 8px 24px -4px rgba(0, 0, 0, 0.1)',
+        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
     },
   },
   plugins: [],

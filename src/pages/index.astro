@@ -1,15 +1,15 @@
 ---
 // src/pages/index.astro
-// 인명사전 스타일 - 검증된 의료인 목록
+// 세련된 인명사전 스타일 - 검증된 의료인 목록
 import Layout from '../layouts/Layout.astro';
 import { getD1, getAllDoctors, getStats } from '../lib/d1';
 import type { Doctor } from '../lib/types';
 
-// Cloudflare D1 바인딩 가져오기
+// Cloudflare D1 바인딩
 const runtime = Astro.locals.runtime;
 const db = getD1(runtime);
 
-// URL 파라미터에서 필터/정렬 옵션 가져오기
+// URL 파라미터
 const url = new URL(Astro.request.url);
 const sortParam = url.searchParams.get('sort') || 'korean';
 const regionParam = url.searchParams.get('region') || '';
@@ -26,228 +26,387 @@ const doctors = await getAllDoctors(db, {
 
 const stats = await getStats(db);
 
-// 지역 목록 (필터용)
+// 지역 목록
 const regions = [...new Set(doctors.map(d => d.region).filter(Boolean))].sort();
 const specialties = ['피부과전문의', '성형외과전문의', '일반의', '타과전문의'];
 
-// 레이더 데이터에서 가장 높은 영역 찾기
-function getTopStrength(doctor: Doctor): string {
+// 강점 영역 계산
+function getTopStrengths(doctor: Doctor): { name: string; value: number; color: string }[] {
   const data = doctor.radar_chart_data;
   const entries = [
-    { key: '학술', value: data.academic },
-    { key: '임상', value: data.clinical },
-    { key: '경력', value: data.career },
-    { key: '안전', value: data.safety },
-    { key: '활동', value: data.activity },
+    { name: '학술', value: data.academic, color: 'bg-strength-academic' },
+    { name: '임상', value: data.clinical, color: 'bg-strength-clinical' },
+    { name: '경력', value: data.career, color: 'bg-strength-career' },
+    { name: '안전', value: data.safety, color: 'bg-strength-safety' },
+    { name: '활동', value: data.activity, color: 'bg-strength-activity' },
   ];
-  const top = entries.sort((a, b) => b.value - a.value)[0];
-  return top.key;
+  return entries.filter(e => e.value > 30).sort((a, b) => b.value - a.value).slice(0, 3);
 }
 
-// 강점 영역 한글 설명
-function getStrengthDescription(doctor: Doctor): string {
-  const strength = getTopStrength(doctor);
-  const typeDescriptions: Record<string, string> = {
-    '학술': '학술 연구에 강점을 가진',
-    '임상': '임상 경험이 풍부한',
-    '경력': '오랜 경력을 갖춘',
-    '안전': '안전한 시술을 추구하는',
-    '활동': '활발한 학회 활동을 하는',
+// 이니셜 추출
+function getInitials(name: string | null): string {
+  if (!name) return '?';
+  return name.charAt(0);
+}
+
+// 타입 색상
+function getTypeColor(type: string): string {
+  const colors: Record<string, string> = {
+    'Scholar': 'from-indigo-500 to-indigo-600',
+    'Maestro': 'from-rose-500 to-rose-600',
+    'Pioneer': 'from-orange-500 to-orange-600',
+    'Guardian': 'from-emerald-500 to-emerald-600',
+    'Hexagon': 'from-violet-500 to-violet-600',
   };
-  return typeDescriptions[strength] || '';
+  return colors[type] || 'from-slate-500 to-slate-600';
+}
+
+// 타입 한글명
+function getTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    'Scholar': '학구파',
+    'Maestro': '실전파',
+    'Pioneer': '선구자',
+    'Guardian': '수호자',
+    'Hexagon': '완전체',
+  };
+  return labels[type] || type;
 }
 ---
 
-<Layout title="검증된 의료인 인명부 - MadMedCheck">
-  <!-- Header Section -->
-  <div class="mb-8">
-    <div class="mb-6">
-      <div class="text-sm text-mmc-secondary font-medium mb-1">
-        Verified Medical Professionals
+<Layout title="검증된 의료인 인명부">
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <!-- Background decoration -->
+      <div class="absolute inset-0 -z-10">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-mmc-accent/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-mmc-accent/5 rounded-full blur-3xl"></div>
       </div>
-      <h1 class="text-3xl md:text-4xl font-display font-black tracking-tight">
-        검증된 의료인 인명부
-      </h1>
-      <p class="text-mmc-secondary mt-2">
-        제3자 검증 데이터 기반 의료인 정보
+
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-mmc-accent-light text-mmc-accent text-sm font-semibold rounded-full mb-6">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          제3자 검증 데이터 기반
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl font-display font-extrabold text-mmc-primary mb-6 leading-tight">
+          검증된 의료인<br class="sm:hidden"/> 인명부
+        </h1>
+
+        <p class="text-lg text-mmc-secondary mb-10 leading-relaxed">
+          SCI 논문, 제조사 인증, 학회 활동 등<br class="hidden sm:block"/>
+          객관적 데이터로 검증된 의료 전문가를 찾아보세요.
+        </p>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap justify-center gap-8 sm:gap-16">
+          <div class="text-center">
+            <div class="text-3xl sm:text-4xl font-display font-bold text-mmc-accent">{stats.total}</div>
+            <div class="text-sm text-mmc-muted mt-1">검증된 의료인</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl sm:text-4xl font-display font-bold text-mmc-primary">{regions.length}</div>
+            <div class="text-sm text-mmc-muted mt-1">지역</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl sm:text-4xl font-display font-bold text-mmc-primary">Weekly</div>
+            <div class="text-sm text-mmc-muted mt-1">업데이트</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search & Filter Section -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4">
+    <div class="bg-mmc-surface rounded-2xl shadow-soft p-6">
+      <form method="GET" class="space-y-4">
+        <!-- Search Input -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg class="w-5 h-5 text-mmc-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            name="q"
+            placeholder="의료인 이름 또는 병원명으로 검색..."
+            value={searchParam}
+            class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-mmc-border bg-mmc-bg text-mmc-primary placeholder-mmc-muted focus:outline-none focus:ring-2 focus:ring-mmc-accent focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Filters Row -->
+        <div class="flex flex-wrap gap-3">
+          <!-- Sort -->
+          <div class="relative">
+            <select
+              name="sort"
+              class="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-mmc-border bg-mmc-bg text-sm font-medium text-mmc-primary focus:outline-none focus:ring-2 focus:ring-mmc-accent cursor-pointer"
+            >
+              <option value="korean" selected={sortParam === 'korean'}>가나다순</option>
+              <option value="english" selected={sortParam === 'english'}>ABC순</option>
+              <option value="region" selected={sortParam === 'region'}>지역별</option>
+              <option value="specialty" selected={sortParam === 'specialty'}>전문분야별</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-mmc-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Region Filter -->
+          <div class="relative">
+            <select
+              name="region"
+              class="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-mmc-border bg-mmc-bg text-sm font-medium text-mmc-primary focus:outline-none focus:ring-2 focus:ring-mmc-accent cursor-pointer"
+            >
+              <option value="">전체 지역</option>
+              {regions.map(region => (
+                <option value={region} selected={regionParam === region}>{region}</option>
+              ))}
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-mmc-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Specialty Filter -->
+          <div class="relative">
+            <select
+              name="specialty"
+              class="appearance-none pl-4 pr-10 py-2.5 rounded-xl border border-mmc-border bg-mmc-bg text-sm font-medium text-mmc-primary focus:outline-none focus:ring-2 focus:ring-mmc-accent cursor-pointer"
+            >
+              <option value="">전체 전문분야</option>
+              {specialties.map(spec => (
+                <option value={spec} selected={specialtyParam === spec}>{spec}</option>
+              ))}
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg class="w-4 h-4 text-mmc-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Search Button -->
+          <button
+            type="submit"
+            class="px-6 py-2.5 bg-mmc-accent text-white text-sm font-semibold rounded-xl hover:bg-mmc-accent-dark transition-colors shadow-soft hover:shadow-soft-lg"
+          >
+            검색
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Results Section -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Results Count -->
+    <div class="flex items-center justify-between mb-6">
+      <p class="text-mmc-secondary">
+        총 <span class="font-semibold text-mmc-primary">{doctors.length}</span>명의 검증된 의료인
       </p>
     </div>
 
-    <!-- Stats Bar (점수/순위 제거) -->
-    <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4">
-      <div class="grid grid-cols-3 gap-4 text-center">
-        <div>
-          <div class="text-2xl font-display font-bold">{stats.total}</div>
-          <div class="text-mmc-secondary text-sm">검증된 의료인</div>
-        </div>
-        <div>
-          <div class="text-2xl font-display font-bold">{regions.length}</div>
-          <div class="text-mmc-secondary text-sm">지역</div>
-        </div>
-        <div>
-          <div class="text-2xl font-display font-bold">Weekly</div>
-          <div class="text-mmc-secondary text-sm">업데이트 주기</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Search & Filter Section -->
-  <div class="bg-mmc-surface rounded-lg border border-mmc-border p-4 mb-6">
-    <form method="GET" class="space-y-4">
-      <!-- Search -->
-      <div>
-        <input
-          type="text"
-          name="q"
-          placeholder="의료인 이름, 병원명으로 검색..."
-          value={searchParam}
-          class="w-full px-4 py-2.5 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text placeholder-mmc-secondary focus:outline-none focus:ring-2 focus:ring-mmc-accent"
-        />
-      </div>
-
-      <!-- Filters -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Sort -->
-        <select
-          name="sort"
-          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
+    <!-- Doctor Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {doctors.map((doctor, index) => (
+        <a
+          href={`/doctor/${doctor.id}`}
+          class="group bg-mmc-surface rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300 hover:-translate-y-1 animate-fade-in"
+          style={`animation-delay: ${index * 50}ms`}
         >
-          <option value="korean" selected={sortParam === 'korean'}>가나다순</option>
-          <option value="english" selected={sortParam === 'english'}>ABC순</option>
-          <option value="region" selected={sortParam === 'region'}>지역별</option>
-          <option value="specialty" selected={sortParam === 'specialty'}>전문분야별</option>
-        </select>
-
-        <!-- Region Filter -->
-        <select
-          name="region"
-          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
-        >
-          <option value="">전체 지역</option>
-          {regions.map(region => (
-            <option value={region} selected={regionParam === region}>{region}</option>
-          ))}
-        </select>
-
-        <!-- Specialty Filter -->
-        <select
-          name="specialty"
-          class="px-3 py-2 rounded-lg border border-mmc-border bg-mmc-bg text-mmc-text text-sm"
-        >
-          <option value="">전체 전문분야</option>
-          {specialties.map(spec => (
-            <option value={spec} selected={specialtyParam === spec}>{spec}</option>
-          ))}
-        </select>
-
-        <!-- Search Button -->
-        <button
-          type="submit"
-          class="px-4 py-2 bg-mmc-accent text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition"
-        >
-          검색
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Results Count -->
-  <div class="mb-4 text-sm text-mmc-secondary">
-    총 <span class="font-semibold text-mmc-text">{doctors.length}</span>명의 검증된 의료인
-  </div>
-
-  <!-- Doctor Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {doctors.map((doctor) => (
-      <a
-        href={`/doctor/${doctor.id}`}
-        class="block bg-mmc-surface border border-mmc-border rounded-lg p-5 hover:border-mmc-accent hover:shadow-lg transition group"
-      >
-        <!-- Doctor Header -->
-        <div class="flex items-start justify-between mb-3">
-          <div>
-            <h3 class="font-bold text-lg group-hover:text-mmc-accent transition">
-              {doctor.doctor_name || '미공개'}
-            </h3>
-            {doctor.english_name && (
-              <div class="text-xs text-mmc-secondary">{doctor.english_name}</div>
+          <!-- Card Header -->
+          <div class="flex items-start gap-4 mb-5">
+            <!-- Avatar / Photo -->
+            {doctor.photo_url ? (
+              <div class="w-14 h-14 rounded-xl overflow-hidden shadow-soft flex-shrink-0">
+                <img
+                  src={doctor.photo_url}
+                  alt={doctor.doctor_name || '의료인'}
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                  onerror="this.parentElement.innerHTML=`<div class='w-full h-full bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center text-white text-xl font-bold'>${this.alt?.charAt(0) || '?'}</div>`"
+                />
+              </div>
+            ) : (
+              <div class={`w-14 h-14 rounded-xl bg-gradient-to-br ${getTypeColor(doctor.doctor_type)} flex items-center justify-center text-white text-xl font-bold shadow-soft flex-shrink-0`}>
+                {getInitials(doctor.doctor_name)}
+              </div>
             )}
-          </div>
-          <span class="text-xs px-2 py-1 rounded bg-mmc-border text-mmc-secondary">
-            {doctor.specialist_type}
-          </span>
-        </div>
 
-        <!-- Hospital & Region -->
-        <div class="text-sm text-mmc-secondary mb-4">
-          <div>{doctor.hospital_name}</div>
-          <div>{doctor.region} · 경력 {doctor.years_of_practice}년</div>
-        </div>
-
-        <!-- Strength Gauges (점수 대신 게이지 바) -->
-        <div class="space-y-2 mb-4">
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-mmc-secondary w-10">학술</span>
-            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
-              <div
-                class="h-full bg-blue-500 rounded-full"
-                style={`width: ${doctor.radar_chart_data.academic}%`}
-              ></div>
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <h3 class="font-bold text-lg text-mmc-primary truncate group-hover:text-mmc-accent transition-colors">
+                  {doctor.doctor_name || '미공개'}
+                </h3>
+              </div>
+              {doctor.english_name && (
+                <p class="text-xs text-mmc-muted mb-1">{doctor.english_name}</p>
+              )}
+              <p class="text-sm text-mmc-secondary truncate">{doctor.hospital_name}</p>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-mmc-secondary w-10">임상</span>
-            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
-              <div
-                class="h-full bg-green-500 rounded-full"
-                style={`width: ${doctor.radar_chart_data.clinical}%`}
-              ></div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-mmc-secondary w-10">활동</span>
-            <div class="flex-1 h-2 bg-mmc-border rounded-full overflow-hidden">
-              <div
-                class="h-full bg-purple-500 rounded-full"
-                style={`width: ${doctor.radar_chart_data.activity}%`}
-              ></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Strength Description -->
-        <div class="text-sm text-mmc-accent">
-          {getStrengthDescription(doctor)} {doctor.specialist_type}
-        </div>
-      </a>
-    ))}
-  </div>
+            <!-- Type Badge -->
+            <span class={`shrink-0 px-2.5 py-1 text-xs font-semibold rounded-lg bg-gradient-to-br ${getTypeColor(doctor.doctor_type)} text-white`}>
+              {getTypeLabel(doctor.doctor_type)}
+            </span>
+          </div>
 
-  {doctors.length === 0 && (
-    <div class="text-center py-20 text-mmc-secondary border border-mmc-border rounded-lg bg-mmc-surface">
-      <p class="mb-2">검색 결과가 없습니다.</p>
-      <a href="/" class="text-mmc-accent hover:underline">전체 목록 보기</a>
+          <!-- Meta Info -->
+          <div class="flex items-center gap-3 text-sm text-mmc-muted mb-5">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              {doctor.region}
+            </span>
+            <span class="w-1 h-1 rounded-full bg-mmc-border"></span>
+            <span>{doctor.specialist_type}</span>
+            <span class="w-1 h-1 rounded-full bg-mmc-border"></span>
+            <span>경력 {doctor.years_of_practice}년</span>
+          </div>
+
+          <!-- Strength Bars -->
+          <div class="space-y-2.5">
+            {getTopStrengths(doctor).map(strength => (
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-mmc-muted w-8">{strength.name}</span>
+                <div class="flex-1 h-2 bg-mmc-border/50 rounded-full overflow-hidden">
+                  <div
+                    class={`h-full rounded-full ${strength.color} transition-all duration-500`}
+                    style={`width: ${strength.value}%`}
+                  ></div>
+                </div>
+                <span class="text-xs font-medium text-mmc-secondary w-8 text-right">{strength.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <!-- Verified Facts Preview -->
+          {doctor.verified_facts.length > 0 && (
+            <div class="mt-5 pt-5 border-t border-mmc-border/50">
+              <div class="flex flex-wrap gap-2">
+                {doctor.verified_facts.slice(0, 2).map(fact => (
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-mmc-accent-light text-mmc-accent text-xs font-medium rounded-lg">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    {typeof fact === 'string' ? fact.replace(/\[.*?\]\s*/, '').slice(0, 20) : fact}
+                  </span>
+                ))}
+                {doctor.verified_facts.length > 2 && (
+                  <span class="px-2.5 py-1 bg-mmc-bg text-mmc-muted text-xs font-medium rounded-lg">
+                    +{doctor.verified_facts.length - 2}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </a>
+      ))}
     </div>
-  )}
 
-  <!-- Data Source Notice -->
-  <div class="mt-8 text-center">
-    <p class="text-sm text-mmc-secondary">
-      본 인명부는 SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만을 기반으로 합니다.
-      <a href="/about" class="text-mmc-accent hover:underline">평가 기준 자세히 보기</a>
-    </p>
-  </div>
+    {doctors.length === 0 && (
+      <div class="text-center py-20">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-mmc-accent-light flex items-center justify-center">
+          <svg class="w-8 h-8 text-mmc-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-mmc-primary mb-2">검색 결과가 없습니다</h3>
+        <p class="text-mmc-secondary mb-6">다른 검색어나 필터를 시도해보세요.</p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-mmc-accent text-white text-sm font-semibold rounded-lg hover:bg-mmc-accent-dark transition">
+          전체 목록 보기
+        </a>
+      </div>
+    )}
+  </section>
 
   <!-- CTA Section -->
-  <section class="mt-12 bg-mmc-surface border border-mmc-border rounded-lg p-8 text-center">
-    <h3 class="text-xl font-bold mb-2">의료인이신가요?</h3>
-    <p class="text-mmc-secondary mb-4">객관적 데이터를 제출하고 인명부에 등재되세요.</p>
-    <a
-      href="/for-doctors"
-      class="inline-block bg-mmc-accent text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-red-700 transition"
-    >
-      데이터 제출하기
-    </a>
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div class="bg-gradient-to-br from-mmc-accent to-mmc-accent-dark rounded-3xl p-8 sm:p-12 text-center text-white relative overflow-hidden">
+      <!-- Background pattern -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-40 h-40 border border-white rounded-full"></div>
+        <div class="absolute bottom-0 right-0 w-60 h-60 border border-white rounded-full"></div>
+      </div>
+
+      <div class="relative">
+        <h2 class="text-2xl sm:text-3xl font-display font-bold mb-4">
+          의료인이신가요?
+        </h2>
+        <p class="text-white/80 mb-8 max-w-lg mx-auto">
+          객관적인 데이터를 제출하고 검증된 인명부에 등재되세요.<br/>
+          마케팅이 아닌 실력으로 인정받을 수 있습니다.
+        </p>
+        <a
+          href="/for-doctors"
+          class="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-mmc-accent font-semibold rounded-xl hover:bg-mmc-accent-light transition-colors shadow-soft-lg"
+        >
+          데이터 제출하기
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Section -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-8">
+      <h3 class="text-lg font-semibold text-mmc-primary mb-2">신뢰할 수 있는 검증 기준</h3>
+      <p class="text-mmc-secondary text-sm">자기 주장이 아닌 제3자 검증 데이터만 인정합니다</p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
+      <div class="text-center p-4">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-strength-academic/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-strength-academic" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div class="font-semibold text-mmc-primary text-sm">SCI 논문</div>
+        <div class="text-xs text-mmc-muted">PubMed 검증</div>
+      </div>
+      <div class="text-center p-4">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-strength-clinical/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-strength-clinical" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+          </svg>
+        </div>
+        <div class="font-semibold text-mmc-primary text-sm">제조사 인증</div>
+        <div class="text-xs text-mmc-muted">공식 트레이너</div>
+      </div>
+      <div class="text-center p-4">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-strength-activity/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-strength-activity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+        <div class="font-semibold text-mmc-primary text-sm">학회 활동</div>
+        <div class="text-xs text-mmc-muted">발표 이력 검증</div>
+      </div>
+      <div class="text-center p-4">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-strength-safety/10 flex items-center justify-center">
+          <svg class="w-6 h-6 text-strength-safety" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div class="font-semibold text-mmc-primary text-sm">안전 기록</div>
+        <div class="text-xs text-mmc-muted">무사고 인증</div>
+      </div>
+    </div>
   </section>
 </Layout>

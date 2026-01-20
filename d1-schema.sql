@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS doctors (
   hospital_name TEXT NOT NULL,
   doctor_name TEXT,
   english_name TEXT, -- 영문이름 (Google 검색으로 확인된 경우)
+  photo_url TEXT, -- 의사 프로필 사진 URL
   hospital_url TEXT,
   region TEXT,
 
@@ -50,6 +51,22 @@ CREATE TABLE IF NOT EXISTS doctors (
   filtered_claims TEXT DEFAULT '[]',
   radar_chart_data TEXT DEFAULT '{"academic":0,"clinical":0,"career":0,"safety":0,"activity":0}',
   consulting_comment TEXT,
+
+  -- 전문분야 프로파일 (의료관광용)
+  specialty_tagline TEXT, -- 한줄 소개 (예: "리프팅/타이트닝 전문가")
+  specialty_tagline_en TEXT, -- 영문 소개 (예: "Lifting & Tightening Specialist")
+  kol_products TEXT DEFAULT '[]', -- KOL 제품 목록 (JSON)
+  equipment_list TEXT DEFAULT '[]', -- 보유 장비 목록 (JSON)
+  specialty_categories TEXT DEFAULT '[]', -- 전문분야 카테고리 (JSON)
+  technology_keywords TEXT DEFAULT '[]', -- 기술 키워드 (JSON)
+  mechanism_keywords TEXT DEFAULT '[]', -- 기전 키워드 (JSON)
+
+  -- 확장 클리닉 프로파일 (의료관광 고객용)
+  clinic_positioning TEXT DEFAULT '{}', -- 클리닉 포지셔닝/철학 (JSON)
+  service_portfolio TEXT DEFAULT '[]', -- 서비스 포트폴리오 (JSON)
+  signature_programs TEXT DEFAULT '[]', -- 시그니처 프로그램 (JSON)
+  target_segments TEXT DEFAULT '[]', -- 타겟 고객층 (JSON)
+  medical_tourism_summary TEXT DEFAULT '{}', -- 의료관광 요약 (JSON)
 
   -- 메타데이터
   created_at TEXT DEFAULT (datetime('now')),

@@ -19,7 +19,7 @@ const {
   structuredData,
 } = Astro.props;
 
-const fullTitle = `${title} | MadMedCheck - AI 의료인 검증`;
+const fullTitle = `${title} | MadMedCheck`;
 
 // 기본 구조화 데이터
 const defaultStructuredData = {
@@ -27,40 +27,22 @@ const defaultStructuredData = {
   "@type": "WebSite",
   "name": "MadMedCheck",
   "alternateName": "매드메드체크",
-  "description": "제3자 검증 데이터 기반 의료인 인명부 - SCI 논문, 제조사 인증, 학회 활동 등 객관적 데이터로 검증된 의료인 정보",
+  "description": "제3자 검증 데이터 기반 의료인 인명부",
   "url": siteUrl,
   "potentialAction": {
     "@type": "SearchAction",
     "target": `${siteUrl}/?q={search_term_string}`,
     "query-input": "required name=search_term_string"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "MadMedCheck",
-    "description": "제3자 검증 기반 의료인 정보 서비스",
-    "url": siteUrl
   }
 };
 
-// Organization 구조화 데이터
 const organizationData = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "MadMedCheck",
-  "alternateName": "매드메드체크",
   "url": siteUrl,
-  "description": "마케팅 자본이 아닌 실력(Human Capital)으로 의료인을 평가하는 AI 기반 검증 시스템",
-  "foundingDate": "2025",
-  "slogan": "실력 있는 의료인이 소비자와 만나는 가장 정직한 길",
-  "knowsAbout": ["의료인 평가", "피부과 전문의", "성형외과 전문의", "SCI 논문", "의료 품질 평가"]
+  "description": "객관적 데이터 기반 의료인 검증 서비스"
 };
-
-// 현재 날짜
-const currentDate = new Date().toLocaleDateString('ko-KR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-});
 ---
 
 <!doctype html>
@@ -74,14 +56,8 @@ const currentDate = new Date().toLocaleDateString('ko-KR', {
 
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalUrl} />
-
-    <!-- Language -->
     <meta property="og:locale" content="ko_KR" />
-    <link rel="alternate" hreflang="ko" href={canonicalUrl} />
-
-    <!-- Robots -->
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow" />
+    <meta name="robots" content="index, follow" />
 
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
@@ -90,25 +66,11 @@ const currentDate = new Date().toLocaleDateString('ko-KR', {
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="MadMedCheck" />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
-
-    <!-- Additional SEO -->
-    <meta name="author" content="MadMedCheck" />
-    <meta name="keywords" content="피부과 추천, 성형외과 추천, 좋은 의사, 실력있는 의사, 의사 랭킹, 피부과 전문의, SCI 논문, 의료인 평가, AI 의료 검증" />
-
-    <!-- AEO: AI가 이해할 수 있는 맥락 제공 -->
-    <meta name="subject" content="의료인 객관적 평가 및 랭킹" />
-    <meta name="topic" content="피부과, 성형외과 전문의 검증 데이터" />
-    <meta name="classification" content="Healthcare, Medical Professional Rating" />
-    <meta name="coverage" content="South Korea" />
-    <meta name="rating" content="General" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -116,71 +78,107 @@ const currentDate = new Date().toLocaleDateString('ko-KR', {
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
       rel="stylesheet"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Schema.org JSON-LD: WebSite -->
+    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify(defaultStructuredData)} />
-
-    <!-- Schema.org JSON-LD: Organization -->
     <script type="application/ld+json" set:html={JSON.stringify(organizationData)} />
-
-    <!-- 페이지별 추가 구조화 데이터 -->
     {structuredData && (
       <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
     )}
   </head>
-  <body class="bg-mmc-bg text-mmc-primary min-h-screen font-sans">
-    <!-- Header: Billboard-style clean header -->
-    <header class="bg-white border-b border-mmc-border sticky top-0 z-50">
-      <div class="max-w-6xl mx-auto px-4">
-        <!-- Top bar -->
-        <div class="flex items-center justify-between py-4">
-          <a href="/" class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-mmc-accent rounded-lg flex items-center justify-center">
-              <span class="text-white font-display font-black text-sm">M</span>
+  <body class="bg-mmc-bg text-mmc-primary min-h-screen font-sans antialiased">
+    <!-- Header -->
+    <header class="bg-mmc-surface/80 backdrop-blur-lg border-b border-mmc-border/50 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 bg-gradient-to-br from-mmc-accent to-mmc-accent-dark rounded-xl flex items-center justify-center shadow-soft group-hover:shadow-soft-lg transition-shadow">
+              <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
             </div>
             <div>
-              <span class="font-display font-black text-xl tracking-tight">
-                MADMEDCHECK
+              <span class="font-display font-bold text-lg tracking-tight text-mmc-primary">
+                MadMedCheck
               </span>
-              <div class="text-xs text-mmc-secondary -mt-0.5">Verified Medical Professionals</div>
+              <div class="text-[10px] text-mmc-muted font-medium tracking-wide uppercase">
+                Verified Professionals
+              </div>
             </div>
           </a>
 
-          <nav class="flex items-center gap-8">
-            <a href="/" class="text-sm font-semibold text-mmc-primary hover:text-mmc-accent transition">
+          <!-- Navigation -->
+          <nav class="flex items-center gap-1">
+            <a href="/" class="px-4 py-2 text-sm font-semibold text-mmc-primary hover:text-mmc-accent hover:bg-mmc-accent-light rounded-lg transition-all">
               인명부
             </a>
-            <a href="/about" class="text-sm font-semibold text-mmc-secondary hover:text-mmc-accent transition">
+            <a href="/about" class="px-4 py-2 text-sm font-semibold text-mmc-secondary hover:text-mmc-accent hover:bg-mmc-accent-light rounded-lg transition-all">
               검증기준
+            </a>
+            <a href="/for-doctors" class="ml-2 px-4 py-2 text-sm font-semibold text-white bg-mmc-accent hover:bg-mmc-accent-dark rounded-lg transition-all shadow-soft hover:shadow-soft-lg">
+              등록 신청
             </a>
           </nav>
         </div>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <main class="min-h-[calc(100vh-200px)]">
       <slot />
     </main>
 
-    <!-- Footer: Clean, minimal -->
-    <footer class="bg-mmc-surface border-t border-mmc-border mt-16">
-      <div class="max-w-6xl mx-auto px-4 py-8">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-mmc-primary rounded flex items-center justify-center">
-              <span class="text-white font-display font-bold text-xs">M</span>
+    <!-- Footer -->
+    <footer class="bg-mmc-surface border-t border-mmc-border mt-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- Brand -->
+          <div class="md:col-span-2">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-gradient-to-br from-mmc-accent to-mmc-accent-dark rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg">MadMedCheck</span>
             </div>
-            <span class="font-display font-bold text-sm">MADMEDCHECK</span>
+            <p class="text-mmc-secondary text-sm leading-relaxed max-w-md">
+              마케팅 자본이 아닌 실력으로 평가받는 의료인 인명사전.<br/>
+              SCI 논문, 제조사 인증, 학회 활동 등 제3자 검증 데이터만을 기반으로 합니다.
+            </p>
           </div>
-          <p class="text-mmc-secondary text-sm text-center">
-            실력 있는 의료인이 소비자와 만나는 가장 정직한 길
+
+          <!-- Links -->
+          <div>
+            <h4 class="font-semibold text-mmc-primary mb-4">서비스</h4>
+            <ul class="space-y-2">
+              <li><a href="/" class="text-sm text-mmc-secondary hover:text-mmc-accent transition">의료인 인명부</a></li>
+              <li><a href="/about" class="text-sm text-mmc-secondary hover:text-mmc-accent transition">평가 기준</a></li>
+              <li><a href="/for-doctors" class="text-sm text-mmc-secondary hover:text-mmc-accent transition">의료인 등록</a></li>
+            </ul>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <h4 class="font-semibold text-mmc-primary mb-4">문의</h4>
+            <ul class="space-y-2">
+              <li class="text-sm text-mmc-secondary">contact@madmedcheck.com</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-mmc-border mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p class="text-mmc-muted text-xs">
+            © 2025 MadMedCheck. All rights reserved.
           </p>
-          <p class="text-mmc-secondary text-xs">
-            © 2025 MadMedCheck
+          <p class="text-mmc-muted text-xs">
+            실력 있는 의료인이 소비자와 만나는 가장 정직한 길
           </p>
         </div>
       </div>
@@ -193,6 +191,33 @@ const currentDate = new Date().toLocaleDateString('ko-KR', {
     font-family: 'Pretendard', system-ui, sans-serif;
   }
   .font-display {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection */
+  ::selection {
+    background: #0891b2;
+    color: white;
   }
 </style>
