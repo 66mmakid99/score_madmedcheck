@@ -1,5 +1,6 @@
 // src/lib/pipeline/image-processor.ts
 // 의사 프로필 사진 배경 제거 및 합성 모듈
+// 지원 API: PhotoRoom (무료 100장), Remove.bg (무료 50장), Pixian.ai (무료)
 
 import sharp from 'sharp';
 
@@ -10,10 +11,50 @@ interface ProcessedImageResult {
   error?: string;
 }
 
+interface BgRemovalConfig {
+  provider: 'photoroom' | 'removebg' | 'pixian' | 'none';
+  apiKey?: string;
+}
+
 /**
- * Remove.bg API를 사용한 배경 제거
+ * PhotoRoom API를 사용한 배경 제거 (무료 100장/월)
+ * https://www.photoroom.com/api
  */
-async function removeBackground(imageUrl: string, apiKey: string): Promise<Buffer | null> {
+async function removeBackgroundPhotoRoom(imageUrl: string, apiKey: string): Promise<Buffer | null> {
+  try {
+    // 먼저 이미지 다운로드
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) return null;
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+
+    const formData = new FormData();
+    formData.append('image_file', new Blob([imageBuffer]), 'photo.jpg');
+
+    const response = await fetch('https://sdk.photoroom.com/v1/segment', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      console.error('  ⚠️ PhotoRoom API 오류:', response.status);
+      return null;
+    }
+
+    const buffer = await response.arrayBuffer();
+    return Buffer.from(buffer);
+  } catch (error) {
+    console.error('  ⚠️ PhotoRoom 배경 제거 오류:', error);
+    return null;
+  }
+}
+
+/**
+ * Remove.bg API를 사용한 배경 제거 (무료 50장/월)
+ */
+async function removeBackgroundRemoveBg(imageUrl: string, apiKey: string): Promise<Buffer | null> {
   try {
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
@@ -23,7 +64,7 @@ async function removeBackground(imageUrl: string, apiKey: string): Promise<Buffe
       },
       body: JSON.stringify({
         image_url: imageUrl,
-        size: 'regular', // auto, preview, small, regular, medium, full, hd, 4k
+        size: 'regular',
         type: 'person',
         format: 'png',
         crop: true,
@@ -32,16 +73,69 @@ async function removeBackground(imageUrl: string, apiKey: string): Promise<Buffe
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('  ⚠️ Remove.bg API 오류:', response.status, errorText);
+      console.error('  ⚠️ Remove.bg API 오류:', response.status);
       return null;
     }
 
     const buffer = await response.arrayBuffer();
     return Buffer.from(buffer);
   } catch (error) {
-    console.error('  ⚠️ 배경 제거 오류:', error);
+    console.error('  ⚠️ Remove.bg 배경 제거 오류:', error);
     return null;
+  }
+}
+
+/**
+ * Pixian.ai API를 사용한 배경 제거 (무료, 저해상도)
+ * https://pixian.ai/api
+ */
+async function removeBackgroundPixian(imageUrl: string, apiKey: string): Promise<Buffer | null> {
+  try {
+    const response = await fetch('https://api.pixian.ai/api/v2/remove-background', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${Buffer.from(apiKey + ':').toString('base64')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: { url: imageUrl },
+        output: { format: 'png' },
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('  ⚠️ Pixian API 오류:', response.status);
+      return null;
+    }
+
+    const buffer = await response.arrayBuffer();
+    return Buffer.from(buffer);
+  } catch (error) {
+    console.error('  ⚠️ Pixian 배경 제거 오류:', error);
+    return null;
+  }
+}
+
+/**
+ * 배경 제거 통합 함수 - 여러 API 순차 시도
+ */
+async function removeBackground(imageUrl: string, config: BgRemovalConfig): Promise<Buffer | null> {
+  if (!config.apiKey || config.provider === 'none') {
+    return null;
+  }
+
+  switch (config.provider) {
+    case 'photoroom':
+      console.log('  🎨 PhotoRoom API로 배경 제거 중...');
+      return removeBackgroundPhotoRoom(imageUrl, config.apiKey);
+    case 'removebg':
+      console.log('  🎨 Remove.bg API로 배경 제거 중...');
+      return removeBackgroundRemoveBg(imageUrl, config.apiKey);
+    case 'pixian':
+      console.log('  🎨 Pixian.ai API로 배경 제거 중...');
+      return removeBackgroundPixian(imageUrl, config.apiKey);
+    default:
+      return null;
   }
 }
 
@@ -122,12 +216,12 @@ function createMedicalPatternSvg(width: number, height: number, colors: { start:
 export async function processProfilePhoto(
   imageUrl: string,
   doctorType: string,
-  removeBgApiKey: string
+  config: BgRemovalConfig
 ): Promise<ProcessedImageResult> {
   console.log(`  🎨 이미지 처리 시작...`);
 
   // 1. 배경 제거
-  const foregroundBuffer = await removeBackground(imageUrl, removeBgApiKey);
+  const foregroundBuffer = await removeBackground(imageUrl, config);
   if (!foregroundBuffer) {
     return {
       success: false,
@@ -254,21 +348,51 @@ export async function applyVignetteEffect(
 }
 
 /**
+ * 사용 가능한 배경 제거 API 감지
+ */
+export function detectBgRemovalConfig(): BgRemovalConfig {
+  // 우선순위: PhotoRoom (100장) > Remove.bg (50장) > Pixian
+  if (process.env.PHOTOROOM_API_KEY) {
+    return { provider: 'photoroom', apiKey: process.env.PHOTOROOM_API_KEY };
+  }
+  if (process.env.REMOVEBG_API_KEY) {
+    return { provider: 'removebg', apiKey: process.env.REMOVEBG_API_KEY };
+  }
+  if (process.env.PIXIAN_API_KEY) {
+    return { provider: 'pixian', apiKey: process.env.PIXIAN_API_KEY };
+  }
+  return { provider: 'none' };
+}
+
+/**
  * 이미지 처리 메인 함수
- * Remove.bg API 키가 있으면 배경 제거 + 합성, 없으면 비네팅만 적용
+ * 사용 가능한 배경 제거 API 자동 감지, 없으면 비네팅만 적용
  */
 export async function enhanceProfilePhoto(
   imageUrl: string,
   doctorType: string,
-  removeBgApiKey?: string
+  config?: BgRemovalConfig
 ): Promise<ProcessedImageResult> {
-  if (removeBgApiKey) {
-    return processProfilePhoto(imageUrl, doctorType, removeBgApiKey);
+  const bgConfig = config || detectBgRemovalConfig();
+
+  if (bgConfig.provider !== 'none' && bgConfig.apiKey) {
+    console.log(`  🎨 ${bgConfig.provider} API로 배경 제거 시도...`);
+    const result = await processProfilePhoto(imageUrl, doctorType, bgConfig);
+
+    // 배경 제거 실패 시 비네팅으로 폴백
+    if (!result.success) {
+      console.log(`  ⚠️ 배경 제거 실패, 비네팅 효과로 대체`);
+      return applyVignetteEffect(imageUrl, doctorType);
+    }
+    return result;
   } else {
-    console.log(`  ⚠️ REMOVEBG_API_KEY 없음, 비네팅 효과만 적용`);
+    console.log(`  ⚠️ 배경 제거 API 키 없음, 비네팅 효과만 적용`);
     return applyVignetteEffect(imageUrl, doctorType);
   }
 }
+
+// 타입 export
+export type { BgRemovalConfig };
 
 /**
  * Cloudflare Images에 업로드 (선택적)
