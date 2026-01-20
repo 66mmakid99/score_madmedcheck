@@ -63,6 +63,17 @@ jobs:
           path: crawl-results.sql
           if-no-files-found: ignore
 
+      - name: Run D1 Migrations
+        run: |
+          npm install -g wrangler
+          # 마이그레이션 파일들 실행 (오류 무시 - 이미 존재하는 컬럼)
+          for f in migrations/*.sql; do
+            echo "Running migration: $f"
+            npx wrangler d1 execute madmedcheck-db --file="$f" --remote || true
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Apply to D1 Database
         if: hashFiles('crawl-results.sql') != ''
         run: |
