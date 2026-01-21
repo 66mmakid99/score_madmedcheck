@@ -1,19 +1,9 @@
 // src/lib/pipeline/claude-analyzer.ts
-// Claude API를 사용한 팩트 추출 및 분석
-// 3단계 하이브리드 전략: Haiku(추출) + Sonnet(분석) + Opus(프리미엄)
+// Gemini를 사용한 팩트 추출 및 분석
+// 비용 전략: Gemini 2.0 Flash (무료 티어: 15 RPM, 100만 토큰/일)
 
-import Anthropic from '@anthropic-ai/sdk';
+import { geminiChat } from './gemini-client';
 import type { DoctorType, Tier } from '../types';
-
-// 모델 선택 전략 (3단계 하이브리드)
-const MODELS = {
-  // 단순 구조화 작업 - Haiku (빠르고 저렴)
-  extraction: 'claude-3-5-haiku-latest',
-  // 중간 복잡도 - Sonnet 4 (코멘트 생성 등)
-  analysis: 'claude-sonnet-4-20250514',
-  // 최고 품질 필요 - Opus 4.5 (의료관광용 프로파일 등)
-  premium: 'claude-opus-4-5-20251101',
-} as const;
 
 export interface ExtractedFacts {
   // 기본 정보
@@ -94,24 +84,15 @@ JSON만 출력하세요. 다른 설명은 하지 마세요.`;
 export async function extractFacts(
   content: string,
   hospitalName: string,
-  apiKey: string
+  apiKey: string // GEMINI_API_KEY 사용
 ): Promise<ExtractedFacts> {
-  const client = new Anthropic({ apiKey });
-
-  // Haiku 사용 - 구조화된 팩트 추출은 단순 작업
-  const message = await client.messages.create({
-    model: MODELS.extraction,
-    max_tokens: 2000,
-    messages: [
-      {
-        role: 'user',
-        content: `병원명: ${hospitalName}\n\n---\n\n${content}\n\n---\n\n위 내용에서 팩트를 추출해주세요.`,
-      },
-    ],
-    system: EXTRACTION_PROMPT,
-  });
-
-  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+  // Gemini 2.0 Flash 사용 - 무료 티어로 팩트 추출
+  const responseText = await geminiChat(
+    apiKey,
+    EXTRACTION_PROMPT,
+    `병원명: ${hospitalName}\n\n---\n\n${content}\n\n---\n\n위 내용에서 팩트를 추출해주세요.`,
+    { model: 'flash', maxTokens: 2000 }
+  );
 
   try {
     // JSON 파싱 시도
@@ -175,13 +156,17 @@ export async function generateConsultingComment(
   scores: { foundation: number; academic: number; clinical: number; reputation: number; total: number },
   doctorType: DoctorType,
   tier: Tier,
-  apiKey: string
+  apiKey: string // 이제 GROQ_API_KEY 사용
 ): Promise<string> {
-  const client = new Anthropic({ apiKey });
+  const systemPrompt = `당신은 의료 컨설턴트입니다. 의사 분석 결과를 바탕으로 한 줄 컨설팅 코멘트를 작성합니다.
+작성 규칙:
+- 1~2문장으로 짧게
+- 해당 의사의 강점을 언급
+- 유형에 맞는 코멘트
+- 존댓말 사용
+코멘트만 출력하세요.`;
 
-  const prompt = `의사 분석 결과를 바탕으로 한 줄 컨설팅 코멘트를 작성하세요.
-
-## 의사 정보
+  const userPrompt = `## 의사 정보
 - 등급: ${tier}
 - 유형: ${doctorType}
 - 총점: ${scores.total}점
@@ -193,20 +178,13 @@ export async function generateConsultingComment(
 ## 검증된 팩트
 ${facts.verifiedFacts.join('\n')}
 
-## 작성 규칙
-- 1~2문장으로 짧게
-- 해당 의사의 강점을 언급
-- 유형에 맞는 코멘트
-- 존댓말 사용
+위 정보를 바탕으로 한 줄 컨설팅 코멘트를 작성해주세요.`;
 
-코멘트만 출력하세요.`;
-
-  // Sonnet 사용 - 코멘트 생성은 중간 복잡도
-  const message = await client.messages.create({
-    model: MODELS.analysis,
-    max_tokens: 200,
-    messages: [{ role: 'user', content: prompt }],
+  // Gemini 2.0 Flash 사용 - 코멘트 생성
+  const response = await geminiChat(apiKey, systemPrompt, userPrompt, {
+    model: 'flash',
+    maxTokens: 200,
   });
 
-  return message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+  return response.trim();
 }

@@ -6,12 +6,30 @@ import { searchClinicsInRegion } from '../src/lib/pipeline/naver-search';
 import { scrapeUrl, extractDoctorSections } from '../src/lib/pipeline/firecrawl';
 import { extractFacts, generateConsultingComment } from '../src/lib/pipeline/claude-analyzer';
 import { analyzeDoctor } from '../src/lib/pipeline/scoring';
-import { extractDoctorPhotoFromMarkdown, searchDoctorPhotos } from '../src/lib/pipeline/image-extractor';
-import { collectAndValidatePhoto } from '../src/lib/pipeline/photo-validator';
-import { enhanceProfilePhoto } from '../src/lib/pipeline/image-processor';
+import { extractDoctorPhotoFromMarkdown } from '../src/lib/pipeline/image-extractor';
+import { collectAndValidatePhoto, collectPhotoWithoutValidation } from '../src/lib/pipeline/photo-validator';
 import { analyzeSpecialtyProfile } from '../src/lib/pipeline/specialty-analyzer';
 
 config();
+
+// 구글 이미지 검색 (선택사항 - SERPAPI)
+async function searchDoctorPhotos(
+  doctorName: string,
+  hospitalName: string,
+  apiKey: string,
+  count: number = 3
+): Promise<string[]> {
+  try {
+    const query = `${doctorName} ${hospitalName} 의사`;
+    const url = `https://serpapi.com/search.json?engine=google_images&q=${encodeURIComponent(query)}&api_key=${apiKey}&num=${count}`;
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return (data.images_results || []).slice(0, count).map((r: { original: string }) => r.original);
+  } catch {
+    return [];
+  }
+}
 
 // 환경변수 확인
 function validateEnv() {
@@ -19,7 +37,7 @@ function validateEnv() {
     'NAVER_CLIENT_ID',
     'NAVER_CLIENT_SECRET',
     'FIRECRAWL_API_KEY',
-    'ANTHROPIC_API_KEY',
+    'GEMINI_API_KEY', // Gemini (전체 AI 분석 - 무료 크레딧 활용)
   ];
 
   const missing = required.filter((key) => !process.env[key]);
@@ -34,7 +52,8 @@ function validateEnv() {
     naverClientId: process.env.NAVER_CLIENT_ID!,
     naverClientSecret: process.env.NAVER_CLIENT_SECRET!,
     firecrawlApiKey: process.env.FIRECRAWL_API_KEY!,
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY!,
+    geminiApiKey: process.env.GEMINI_API_KEY!, // Gemini (팩트 추출 + 코멘트 + 사진 검증 + 전문분야)
+    serpapiKey: process.env.SERPAPI_KEY, // 구글 이미지 검색 (선택)
   };
 }
 
@@ -201,70 +220,54 @@ async function processHospital(
       scrapedContent = `병원명: ${hospitalName}\n주소: ${hospital.address || ''}\n전화: ${hospital.telephone || ''}`;
     }
 
-    // 2. Claude로 팩트 추출
-    console.log(`  🤖 Claude 분석 중...`);
-    const facts = await extractFacts(scrapedContent, hospitalName, config.anthropicApiKey);
+    // 2. Gemini Flash로 팩트 추출
+    console.log(`  🤖 Gemini Flash 분석 중...`);
+    const facts = await extractFacts(scrapedContent, hospitalName, config.geminiApiKey);
     console.log(`  ✅ 팩트 ${facts.verifiedFacts.length}개 추출`);
 
     // 3. 점수 계산
     const { scores, tier, doctorType, radarData } = analyzeDoctor(facts);
     console.log(`  📊 점수: ${scores.total}점 (${tier}) - 저장 대상`);
 
-    // 4. AI 코멘트 생성
+    // 4. Gemini Flash로 AI 코멘트 생성
     const comment = await generateConsultingComment(
       facts,
       scores,
       doctorType,
       tier,
-      config.anthropicApiKey
+      config.geminiApiKey
     );
 
-    // 5. 의사 사진 추출 및 AI 교차검증
-    console.log(`  📷 사진 추출 및 검증 중...`);
+    // 5. 의사 사진 추출 및 AI 교차검증 (Gemini Vision 무료 티어)
+    console.log(`  📷 사진 추출 중...`);
     let photoUrl: string | null = null;
 
     if (facts.doctorName) {
       // 웹사이트에서 사진 추출
       const websitePhoto = extractDoctorPhotoFromMarkdown(scrapedContent, facts.doctorName);
 
-      // 구글 이미지 검색 (교차검증용 여러 결과)
-      const googlePhotos = process.env.SERPAPI_KEY
-        ? await searchDoctorPhotos(facts.doctorName, hospitalName, process.env.SERPAPI_KEY, 3)
+      // 구글 이미지 검색 (선택사항 - SERPAPI 있을 때만)
+      const googlePhotos = config.serpapiKey
+        ? await searchDoctorPhotos(facts.doctorName, hospitalName, config.serpapiKey, 3)
         : [];
 
       console.log(`  🔍 웹사이트: ${websitePhoto ? '발견' : '없음'}, 구글: ${googlePhotos.length}개`);
 
-      // AI 교차검증 실행
+      // Gemini Vision으로 교차검증
       if (websitePhoto || googlePhotos.length > 0) {
         const validationResult = await collectAndValidatePhoto(
           websitePhoto,
           googlePhotos,
           facts.doctorName,
           hospitalName,
-          config.anthropicApiKey
+          config.geminiApiKey
         );
 
         if (validationResult.isValid && validationResult.photoUrl) {
-          console.log(`  ✅ 검증 통과 (신뢰도: ${validationResult.confidence}%)`);
-
-          // 6. 배경 제거 및 새 배경 합성
-          console.log(`  🎨 이미지 보정 중...`);
-          const enhancedResult = await enhanceProfilePhoto(
-            validationResult.photoUrl,
-            doctorType,
-            process.env.REMOVEBG_API_KEY
-          );
-
-          if (enhancedResult.success && enhancedResult.processedImageUrl) {
-            photoUrl = enhancedResult.processedImageUrl;
-            console.log(`  ✅ 이미지 보정 완료 (배경 제거 + 그라데이션)`);
-          } else {
-            // 보정 실패 시 원본 사용
-            photoUrl = validationResult.photoUrl;
-            console.log(`  ⚠️ 이미지 보정 실패, 원본 사용: ${enhancedResult.error || 'Unknown'}`);
-          }
+          photoUrl = validationResult.photoUrl;
+          console.log(`  ✅ Gemini 검증 통과 (신뢰도: ${validationResult.confidence}%)`);
         } else {
-          console.log(`  ⚠️ 검증 실패: ${validationResult.reason}`);
+          console.log(`  ⚠️ Gemini 검증 실패: ${validationResult.reason}`);
         }
       }
     }
@@ -273,12 +276,12 @@ async function processHospital(
       console.log(`  ⚠️ 사진 없음 (이니셜로 대체)`);
     }
 
-    // 7. 전문분야 프로파일 분석 (의료관광용)
+    // 6. 전문분야 프로파일 분석 (의료관광용 - Gemini Pro)
     const specialtyProfile = await analyzeSpecialtyProfile(
       scrapedContent,
       facts.doctorName,
       hospitalName,
-      config.anthropicApiKey
+      config.geminiApiKey
     );
 
     return {
