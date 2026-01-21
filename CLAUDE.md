@@ -9,12 +9,13 @@
 
 ### 2026-01-21
 - **크롤링 테스트 실패** - 강남역/압구정역 피부과 크롤링 결과 전부 10점
-- **버그 3건 발견** (아래 "현재 크롤링 파이프라인 버그" 섹션 참조)
-  1. URL 필터링 누락 → SNS 링크 크롤링
-  2. Gemini 1.5-pro 모델 404
-  3. Gemini 2.0-flash-exp Rate Limit 429
+- **버그 3건 발견 및 수정 완료** ✅
+  1. ✅ URL 필터링 추가 (`naver-search.ts`) - SNS URL 자동 제외
+  2. ✅ Gemini 모델명 수정 (`gemini-client.ts`) - 1.5-flash로 변경
+  3. ✅ Rate limit 대응 (`gemini-client.ts`) - exponential backoff 재시도
 - **AI 전환 완료** - Anthropic → Gemini 전면 전환 (무료 크레딧 활용)
 - **문서화** - CLAUDE.md에 버그 상황 기록
+- **다음**: 크롤링 재테스트 필요
 
 ### 2026-01-20
 - Groq → Gemini 전환 작업
