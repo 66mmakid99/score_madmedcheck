@@ -4,14 +4,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Gemini 모델 ID (2026-01-21 업데이트)
-// 참고: gemini-2.0-flash-exp는 분당 10회 제한, gemini-1.5-flash는 15 RPM
+// gemini-1.5 시리즈 404 에러로 2.0/2.5 사용
 export const GEMINI_MODELS = {
-  // 빠른 작업용 (팩트 추출, 코멘트) - 1.5-flash가 더 높은 쿼터
-  flash: 'gemini-1.5-flash',
-  flash20: 'gemini-2.0-flash',
+  // 빠른 작업용 (팩트 추출, 코멘트)
+  flash: 'gemini-2.0-flash',
   // 복잡한 분석용 (전문분야 프로파일)
-  pro: 'gemini-1.5-flash',  // 1.5-pro 404 에러로 flash로 대체
-  pro20: 'gemini-2.0-flash',
+  pro: 'gemini-2.5-pro-preview-05-06',
 } as const;
 
 export type GeminiModel = keyof typeof GEMINI_MODELS;
