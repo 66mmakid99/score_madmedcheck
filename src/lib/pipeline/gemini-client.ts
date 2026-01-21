@@ -3,20 +3,23 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Gemini 모델 ID
+// Gemini 모델 ID (2026-01-21 업데이트)
+// gemini-1.5 시리즈 404 에러로 2.0/2.5 사용
 export const GEMINI_MODELS = {
   // 빠른 작업용 (팩트 추출, 코멘트)
-  flash: 'gemini-2.0-flash-exp',
-  flash15: 'gemini-1.5-flash',
+  flash: 'gemini-2.0-flash',
   // 복잡한 분석용 (전문분야 프로파일)
-  pro: 'gemini-1.5-pro',
-  pro25: 'gemini-2.5-pro-preview-05-06',
+  pro: 'gemini-2.5-pro-preview-05-06',
 } as const;
 
 export type GeminiModel = keyof typeof GEMINI_MODELS;
 
+// 딜레이 함수
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * Gemini 텍스트 생성 (Groq 대체)
+ * Rate limit 대응: exponential backoff 재시도
  */
 export async function geminiChat(
   apiKey: string,
@@ -26,30 +29,48 @@ export async function geminiChat(
     model?: GeminiModel;
     maxTokens?: number;
     temperature?: number;
+    maxRetries?: number;
   } = {}
 ): Promise<string> {
-  const { model = 'flash', maxTokens = 4096, temperature = 0.3 } = options;
+  const { model = 'flash', maxTokens = 4096, temperature = 0.3, maxRetries = 3 } = options;
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const geminiModel = genAI.getGenerativeModel({
-      model: GEMINI_MODELS[model],
-      generationConfig: {
-        maxOutputTokens: maxTokens,
-        temperature,
-      },
-    });
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const geminiModel = genAI.getGenerativeModel({
+    model: GEMINI_MODELS[model],
+    generationConfig: {
+      maxOutputTokens: maxTokens,
+      temperature,
+    },
+  });
 
-    // System prompt + User message 결합
-    const fullPrompt = `${systemPrompt}\n\n---\n\n${userMessage}`;
+  // System prompt + User message 결합
+  const fullPrompt = `${systemPrompt}\n\n---\n\n${userMessage}`;
 
-    const result = await geminiModel.generateContent(fullPrompt);
-    const response = result.response;
-    return response.text();
-  } catch (error) {
-    console.error(`Gemini ${model} error:`, error);
-    throw error;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await geminiModel.generateContent(fullPrompt);
+      const response = result.response;
+      return response.text();
+    } catch (error: any) {
+      lastError = error;
+
+      // 429 Rate Limit 에러인 경우 재시도
+      if (error?.status === 429 && attempt < maxRetries) {
+        const waitTime = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s
+        console.log(`  ⏳ Rate limit, ${waitTime/1000}초 후 재시도... (${attempt + 1}/${maxRetries})`);
+        await delay(waitTime);
+        continue;
+      }
+
+      // 다른 에러는 바로 throw
+      console.error(`Gemini ${model} error:`, error);
+      throw error;
+    }
   }
+
+  throw lastError;
 }
 
 /**

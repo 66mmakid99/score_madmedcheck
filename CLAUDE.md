@@ -1,5 +1,28 @@
 # CLAUDE.md - MadMedCheck 프로젝트 컨텍스트
 
+> ⚠️ **새 세션 시작 시 이 파일부터 읽을 것!**
+> 변경 로그 → 현재 버그 → 다음 할 일 순서로 확인
+
+---
+
+## 📋 변경 로그 (최신순)
+
+### 2026-01-21
+- **크롤링 테스트 실패** - 강남역/압구정역 피부과 크롤링 결과 전부 10점
+- **버그 3건 발견 및 수정 완료** ✅
+  1. ✅ URL 필터링 추가 (`naver-search.ts`) - SNS URL 자동 제외
+  2. ✅ Gemini 모델명 수정 (`gemini-client.ts`) - 1.5-flash로 변경
+  3. ✅ Rate limit 대응 (`gemini-client.ts`) - exponential backoff 재시도
+- **AI 전환 완료** - Anthropic → Gemini 전면 전환 (무료 크레딧 활용)
+- **문서화** - CLAUDE.md에 버그 상황 기록
+- **다음**: 크롤링 재테스트 필요
+
+### 2026-01-20
+- Groq → Gemini 전환 작업
+- 프로젝트 초기 설정 완료
+
+---
+
 ## 프로젝트 개요
 **MadMedCheck** - AI 기반 의료인 검증 시스템
 - 빌보드 HOT 100처럼 실력있는 의사 TOP 100 매주 업데이트
@@ -37,16 +60,65 @@
 - [x] **자동화 크롤링** (GitHub Actions + Cloudflare Cron Worker)
 - [x] **비용 최적화** (Groq + Gemini 전환, 월 ~$31)
 
+## 🚨 현재 크롤링 파이프라인 버그 (2026-01-21 발견)
+
+### 버그 1: 잘못된 URL 크롤링 (치명적)
+- **파일**: `src/lib/pipeline/naver-search.ts:136`
+- **문제**: 네이버 지도 API의 `item.link`가 병원 홈페이지가 아닌 SNS 링크 반환
+- **증상**: 카카오톡(`pf.kakao.com`), 유튜브(`youtube.com`) 등을 크롤링
+- **결과**: 스크래핑 성공 (0자) → 팩트 0개 → 모든 병원 10점
+- **수정 필요**:
+  ```typescript
+  // SNS URL 필터링 추가 필요
+  const INVALID_URL_PATTERNS = [
+    'pf.kakao.com',
+    'youtube.com',
+    'instagram.com',
+    'facebook.com',
+    'blog.naver.com',
+    'cafe.naver.com',
+  ];
+  ```
+
+### 버그 2: Gemini 모델 404 에러
+- **파일**: `src/lib/pipeline/gemini-client.ts:12`
+- **문제**: `gemini-1.5-pro` 모델이 API에서 더 이상 지원 안 함
+- **에러**: `models/gemini-1.5-pro is not found for API version v1beta`
+- **수정 필요**:
+  ```typescript
+  // 변경 전
+  pro: 'gemini-1.5-pro',
+  // 변경 후 (사용 가능한 모델로)
+  pro: 'gemini-2.0-flash',  // 또는 gemini-1.5-flash-latest
+  ```
+
+### 버그 3: Gemini Rate Limit (429)
+- **파일**: `src/lib/pipeline/gemini-client.ts:9`
+- **문제**: `gemini-2.0-flash-exp` 분당 10회 제한 초과
+- **에러**: `429 Too Many Requests - quotaValue: 10`
+- **수정 필요**:
+  - 요청 간격 증가 (현재 1초 → 6초+)
+  - 또는 `gemini-1.5-flash` 모델 사용 (더 높은 쿼터)
+  - 또는 exponential backoff 재시도 로직 추가
+
+### 버그 수정 우선순위
+1. **[긴급]** URL 필터링 - SNS 링크 제외하고 실제 병원 홈페이지만 크롤링
+2. **[긴급]** Gemini 모델명 업데이트
+3. **[중요]** Rate limit 대응 로직 추가
+
+---
+
 ## 다음 할 일 (우선순위)
-1. **D1 데이터베이스 초기화**
+1. **🔴 크롤링 버그 수정** (위 3개 버그)
+2. **D1 데이터베이스 초기화**
    ```bash
    wrangler d1 create madmedcheck-db
    # wrangler.toml에 database_id 입력
    wrangler d1 execute madmedcheck-db --file=./d1-schema.sql
    ```
-2. **환경변수 설정** (Cloudflare 대시보드)
-3. **실 데이터 크롤링** 실행
-4. **학회 발표자 데이터 수집** (2023-2025)
+3. **환경변수 설정** (Cloudflare 대시보드)
+4. **실 데이터 크롤링** 실행
+5. **학회 발표자 데이터 수집** (2023-2025)
 
 ## 핵심 파일 위치
 ```
