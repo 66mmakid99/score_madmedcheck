@@ -118,24 +118,25 @@ Conference Activity (학술대회 발표) - 보수적 배점
 - Master: 200+
 - Diplomate: 100+
 
-## AI 모델 전략 (Groq + Gemini 무료)
+## AI 모델 전략 (Gemini 전면 전환 - 무료 크레딧 활용)
 ```
-Groq Llama 3.3 70B ($0.59/1M input, $0.79/1M output)
+Gemini 2.0 Flash (무료 티어: 15 RPM, 100만 토큰/일)
 - 팩트 추출 (claude-analyzer.ts → extractFacts)
 - 코멘트 생성 (claude-analyzer.ts → generateConsultingComment)
-- 전문분야 프로파일 (specialty-analyzer.ts)
-- 월 예상 비용: ~$12 (2000곳 월 1회)
-
-Gemini Vision (무료 티어: 15 RPM, 100만 토큰/일)
 - 사진 교차검증 (photo-validator.ts → gemini-client.ts)
-- 의사 프로필 사진 검증 (동일 인물 확인)
 - 월 예상 비용: $0 (무료)
+
+Gemini 1.5 Pro (유료 시 $1.25/1M input, $5/1M output)
+- 전문분야 프로파일 (specialty-analyzer.ts)
+- 복잡한 클리닉 분석
+- 월 예상 비용: $0 (무료 크레딧 활용)
 
 Firecrawl ($19/월)
 - 웹 스크래핑 (3000 크레딧/월)
 
-총 월 예상 비용: ~$31 (Groq $12 + Firecrawl $19)
+총 월 예상 비용: ~$19 (Firecrawl만)
 - 전국 2000+ 피부과 월 1회 크롤링 기준
+- Google Cloud 무료 크레딧 ₩43만 활용 (2026년 4월까지)
 ```
 
 ## 환경변수 필요
@@ -144,10 +145,9 @@ Firecrawl ($19/월)
 NAVER_CLIENT_ID=       # 네이버 지도 API
 NAVER_CLIENT_SECRET=
 FIRECRAWL_API_KEY=     # 웹 스크래핑
-GROQ_API_KEY=          # Llama 3.3 70B (팩트 추출 + 코멘트 + 프로파일)
+GEMINI_API_KEY=        # Gemini (전체 AI 분석 - 무료 크레딧)
 
-# 선택 (사진 검증용)
-GEMINI_API_KEY=        # Gemini Vision (무료, 사진 검증)
+# 선택
 SERPAPI_KEY=           # 구글 이미지 검색 (사진 교차검증용)
 
 # D1은 Cloudflare 자동 바인딩 (환경변수 불필요)
@@ -177,11 +177,10 @@ npx tsx scripts/run-pipeline.ts --region "청담역 피부과"
 # 필수
 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 FIRECRAWL_API_KEY
-GROQ_API_KEY              # Llama 3.3 70B (전체 분석)
+GEMINI_API_KEY            # Gemini (전체 AI 분석)
 CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
 
-# 선택 (사진 검증용)
-GEMINI_API_KEY            # Gemini Vision (무료)
+# 선택
 SERPAPI_KEY               # 구글 이미지 검색
 ```
 - 파일: `.github/workflows/crawl.yml`
@@ -196,7 +195,6 @@ wrangler deploy
 
 # Secrets 설정 (Cloudflare 대시보드에서)
 wrangler secret put NAVER_CLIENT_ID
-wrangler secret put GROQ_API_KEY
 wrangler secret put GEMINI_API_KEY
 # ...
 ```

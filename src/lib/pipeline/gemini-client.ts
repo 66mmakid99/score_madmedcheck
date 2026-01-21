@@ -1,15 +1,56 @@
 // src/lib/pipeline/gemini-client.ts
-// Google Gemini API 클라이언트 - 무료 Vision 검증용
+// Google Gemini API 클라이언트 - 텍스트 생성 + Vision
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Gemini 모델 ID
 export const GEMINI_MODELS = {
-  // Gemini 2.0 Flash - 무료 티어 (15 RPM, 100만 토큰/일)
+  // 빠른 작업용 (팩트 추출, 코멘트)
   flash: 'gemini-2.0-flash-exp',
-  // Gemini 1.5 Flash - 안정 버전
   flash15: 'gemini-1.5-flash',
+  // 복잡한 분석용 (전문분야 프로파일)
+  pro: 'gemini-1.5-pro',
+  pro25: 'gemini-2.5-pro-preview-05-06',
 } as const;
+
+export type GeminiModel = keyof typeof GEMINI_MODELS;
+
+/**
+ * Gemini 텍스트 생성 (Groq 대체)
+ */
+export async function geminiChat(
+  apiKey: string,
+  systemPrompt: string,
+  userMessage: string,
+  options: {
+    model?: GeminiModel;
+    maxTokens?: number;
+    temperature?: number;
+  } = {}
+): Promise<string> {
+  const { model = 'flash', maxTokens = 4096, temperature = 0.3 } = options;
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const geminiModel = genAI.getGenerativeModel({
+      model: GEMINI_MODELS[model],
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        temperature,
+      },
+    });
+
+    // System prompt + User message 결합
+    const fullPrompt = `${systemPrompt}\n\n---\n\n${userMessage}`;
+
+    const result = await geminiModel.generateContent(fullPrompt);
+    const response = result.response;
+    return response.text();
+  } catch (error) {
+    console.error(`Gemini ${model} error:`, error);
+    throw error;
+  }
+}
 
 /**
  * 이미지 URL을 base64로 변환

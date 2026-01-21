@@ -37,7 +37,7 @@ function validateEnv() {
     'NAVER_CLIENT_ID',
     'NAVER_CLIENT_SECRET',
     'FIRECRAWL_API_KEY',
-    'GROQ_API_KEY', // Llama 3.3 70B (팩트 추출 + 코멘트 + 전문분야 분석)
+    'GEMINI_API_KEY', // Gemini (전체 AI 분석 - 무료 크레딧 활용)
   ];
 
   const missing = required.filter((key) => !process.env[key]);
@@ -52,8 +52,7 @@ function validateEnv() {
     naverClientId: process.env.NAVER_CLIENT_ID!,
     naverClientSecret: process.env.NAVER_CLIENT_SECRET!,
     firecrawlApiKey: process.env.FIRECRAWL_API_KEY!,
-    groqApiKey: process.env.GROQ_API_KEY!, // Llama 3.3 70B (전부 처리)
-    geminiApiKey: process.env.GEMINI_API_KEY, // Gemini Vision (사진 검증, 선택)
+    geminiApiKey: process.env.GEMINI_API_KEY!, // Gemini (팩트 추출 + 코멘트 + 사진 검증 + 전문분야)
     serpapiKey: process.env.SERPAPI_KEY, // 구글 이미지 검색 (선택)
   };
 }
@@ -221,22 +220,22 @@ async function processHospital(
       scrapedContent = `병원명: ${hospitalName}\n주소: ${hospital.address || ''}\n전화: ${hospital.telephone || ''}`;
     }
 
-    // 2. Groq Llama 3.3으로 팩트 추출
-    console.log(`  🤖 Groq Llama 3.3 분석 중...`);
-    const facts = await extractFacts(scrapedContent, hospitalName, config.groqApiKey);
+    // 2. Gemini Flash로 팩트 추출
+    console.log(`  🤖 Gemini Flash 분석 중...`);
+    const facts = await extractFacts(scrapedContent, hospitalName, config.geminiApiKey);
     console.log(`  ✅ 팩트 ${facts.verifiedFacts.length}개 추출`);
 
     // 3. 점수 계산
     const { scores, tier, doctorType, radarData } = analyzeDoctor(facts);
     console.log(`  📊 점수: ${scores.total}점 (${tier}) - 저장 대상`);
 
-    // 4. Groq로 AI 코멘트 생성
+    // 4. Gemini Flash로 AI 코멘트 생성
     const comment = await generateConsultingComment(
       facts,
       scores,
       doctorType,
       tier,
-      config.groqApiKey
+      config.geminiApiKey
     );
 
     // 5. 의사 사진 추출 및 AI 교차검증 (Gemini Vision 무료 티어)
@@ -254,8 +253,8 @@ async function processHospital(
 
       console.log(`  🔍 웹사이트: ${websitePhoto ? '발견' : '없음'}, 구글: ${googlePhotos.length}개`);
 
-      // Gemini Vision으로 교차검증 (API 키 있을 때)
-      if (config.geminiApiKey && (websitePhoto || googlePhotos.length > 0)) {
+      // Gemini Vision으로 교차검증
+      if (websitePhoto || googlePhotos.length > 0) {
         const validationResult = await collectAndValidatePhoto(
           websitePhoto,
           googlePhotos,
@@ -270,13 +269,6 @@ async function processHospital(
         } else {
           console.log(`  ⚠️ Gemini 검증 실패: ${validationResult.reason}`);
         }
-      } else if (websitePhoto || googlePhotos.length > 0) {
-        // Gemini API 없으면 검증 없이 사용
-        const simpleResult = collectPhotoWithoutValidation(websitePhoto, googlePhotos);
-        if (simpleResult.photoUrl) {
-          photoUrl = simpleResult.photoUrl;
-          console.log(`  ⚠️ 검증 없이 사용: ${simpleResult.reason}`);
-        }
       }
     }
 
@@ -284,12 +276,12 @@ async function processHospital(
       console.log(`  ⚠️ 사진 없음 (이니셜로 대체)`);
     }
 
-    // 6. 전문분야 프로파일 분석 (의료관광용 - Groq Llama 3.3)
+    // 6. 전문분야 프로파일 분석 (의료관광용 - Gemini Pro)
     const specialtyProfile = await analyzeSpecialtyProfile(
       scrapedContent,
       facts.doctorName,
       hospitalName,
-      config.groqApiKey
+      config.geminiApiKey
     );
 
     return {

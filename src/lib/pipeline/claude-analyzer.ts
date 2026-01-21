@@ -1,8 +1,8 @@
 // src/lib/pipeline/claude-analyzer.ts
-// Groq Llama 3.3 70B를 사용한 팩트 추출 및 분석
-// 고속/저비용 전략: Groq Llama 3.3 70B ($0.59/1M input, $0.79/1M output)
+// Gemini를 사용한 팩트 추출 및 분석
+// 비용 전략: Gemini 2.0 Flash (무료 티어: 15 RPM, 100만 토큰/일)
 
-import { groqChat } from './groq-client';
+import { geminiChat } from './gemini-client';
 import type { DoctorType, Tier } from '../types';
 
 export interface ExtractedFacts {
@@ -84,14 +84,14 @@ JSON만 출력하세요. 다른 설명은 하지 마세요.`;
 export async function extractFacts(
   content: string,
   hospitalName: string,
-  apiKey: string // 이제 GROQ_API_KEY 사용
+  apiKey: string // GEMINI_API_KEY 사용
 ): Promise<ExtractedFacts> {
-  // Groq Llama 3.3 70B 사용 - 빠르고 저렴한 팩트 추출
-  const responseText = await groqChat(
+  // Gemini 2.0 Flash 사용 - 무료 티어로 팩트 추출
+  const responseText = await geminiChat(
     apiKey,
     EXTRACTION_PROMPT,
     `병원명: ${hospitalName}\n\n---\n\n${content}\n\n---\n\n위 내용에서 팩트를 추출해주세요.`,
-    { model: 'versatile', maxTokens: 2000 }
+    { model: 'flash', maxTokens: 2000 }
   );
 
   try {
@@ -180,9 +180,9 @@ ${facts.verifiedFacts.join('\n')}
 
 위 정보를 바탕으로 한 줄 컨설팅 코멘트를 작성해주세요.`;
 
-  // Groq Llama 3.3 70B 사용 - 코멘트 생성
-  const response = await groqChat(apiKey, systemPrompt, userPrompt, {
-    model: 'versatile',
+  // Gemini 2.0 Flash 사용 - 코멘트 생성
+  const response = await geminiChat(apiKey, systemPrompt, userPrompt, {
+    model: 'flash',
     maxTokens: 200,
   });
 

@@ -1,8 +1,8 @@
 // src/lib/pipeline/specialty-analyzer.ts
 // 의사 전문 시술분야 분석 모듈 - 의료관광 고객용 프로파일링
-// Groq Llama 3.3 70B 사용 - 저비용 고성능
+// Gemini 2.5 Pro 사용 - 무료 크레딧 + 고성능 분석
 
-import { groqChat } from './groq-client';
+import { geminiChat } from './gemini-client';
 
 // ============================================
 // 장비/제품 → 기술/기전 매핑 데이터베이스
@@ -586,7 +586,7 @@ export async function analyzeClinicProfileWithAI(
   hospitalName: string,
   kolInfo: Array<{ product: string; technologies: string[]; mechanisms: string[] }>,
   equipment: Array<{ device: string; technologies: string[]; mechanisms: string[] }>,
-  groqApiKey: string // Groq API Key 사용
+  geminiApiKey: string // Gemini API Key 사용
 ): Promise<{
   tagline: string;
   taglineEn: string;
@@ -660,9 +660,9 @@ ${scrapedContent.slice(0, 3000)}
 }`;
 
   try {
-    // Groq Llama 3.3 70B 사용 - 저비용 고성능
-    const responseText = await groqChat(groqApiKey, systemPrompt, userPrompt, {
-      model: 'versatile',
+    // Gemini Pro 사용 - 복잡한 분석에 적합
+    const responseText = await geminiChat(geminiApiKey, systemPrompt, userPrompt, {
+      model: 'pro',
       maxTokens: 2000,
     });
 
@@ -709,7 +709,7 @@ export async function analyzeSpecialtyProfile(
   scrapedContent: string,
   doctorName: string | null,
   hospitalName: string,
-  groqApiKey: string // Groq API Key 사용
+  geminiApiKey: string // Gemini API Key 사용
 ): Promise<SpecialtyProfile> {
   console.log(`  🔬 전문분야 분석 중...`);
 
@@ -740,15 +740,15 @@ export async function analyzeSpecialtyProfile(
   const technologyKeywords = [...new Set(equipment.flatMap((e) => e.technologies))];
   const mechanismKeywords = [...new Set(equipment.flatMap((e) => e.mechanisms))];
 
-  // 6. Groq로 종합 클리닉 프로파일 분석
-  console.log(`  🤖 Groq Llama 3.3 분석 중...`);
+  // 6. Gemini Pro로 종합 클리닉 프로파일 분석
+  console.log(`  🤖 Gemini Pro 분석 중...`);
   const aiResult = await analyzeClinicProfileWithAI(
     scrapedContent,
     doctorName,
     hospitalName,
     kolProducts,
     equipment,
-    groqApiKey
+    geminiApiKey
   );
 
   console.log(`  ✅ 전문분야 분석 완료: ${aiResult.tagline}`);
