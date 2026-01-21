@@ -12,6 +12,44 @@ import { analyzeSpecialtyProfile } from '../src/lib/pipeline/specialty-analyzer'
 
 config();
 
+// 구글 웹 검색으로 병원 홈페이지 찾기 (SerpAPI)
+async function searchHospitalWebsite(
+  hospitalName: string,
+  apiKey: string
+): Promise<string | null> {
+  try {
+    const query = `${hospitalName} 홈페이지`;
+    const url = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(query)}&api_key=${apiKey}&num=5&gl=kr&hl=ko`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+
+    // 검색 결과에서 병원 홈페이지 찾기
+    const organicResults = data.organic_results || [];
+    for (const result of organicResults) {
+      const link = result.link?.toLowerCase() || '';
+      // 소셜미디어/블로그 제외
+      if (
+        !link.includes('instagram.com') &&
+        !link.includes('facebook.com') &&
+        !link.includes('blog.naver.com') &&
+        !link.includes('cafe.naver.com') &&
+        !link.includes('youtube.com') &&
+        !link.includes('modoo.at') &&
+        !link.includes('map.naver.com') &&
+        !link.includes('place.naver.com')
+      ) {
+        console.log(`  🔍 Google에서 홈페이지 발견: ${result.link}`);
+        return result.link;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error(`  ⚠️ 홈페이지 검색 실패:`, error);
+    return null;
+  }
+}
+
 // 구글 이미지 검색 (선택사항 - SERPAPI)
 async function searchDoctorPhotos(
   doctorName: string,
@@ -203,17 +241,26 @@ async function processHospital(
   try {
     console.log(`\n📍 처리 중: ${hospitalName}`);
 
+    // 0. URL이 없으면 Google에서 홈페이지 검색
+    let targetUrl = hospital.url || null;
+    if (!targetUrl && config.serpapiKey) {
+      console.log(`  🔎 네이버에 URL 없음 → Google에서 홈페이지 검색 중...`);
+      targetUrl = await searchHospitalWebsite(hospitalName, config.serpapiKey);
+    }
+
     // 1. 홈페이지 스크래핑
     let scrapedContent = '';
-    if (hospital.url) {
-      console.log(`  🔍 스크래핑: ${hospital.url}`);
-      const scraped = await scrapeUrl(hospital.url, config.firecrawlApiKey);
+    if (targetUrl) {
+      console.log(`  🔍 스크래핑: ${targetUrl}`);
+      const scraped = await scrapeUrl(targetUrl, config.firecrawlApiKey);
       if (scraped.success) {
         scrapedContent = extractDoctorSections(scraped.markdown);
         console.log(`  ✅ 스크래핑 성공 (${scrapedContent.length}자)`);
       } else {
         console.log(`  ⚠️ 스크래핑 실패: ${scraped.error}`);
       }
+    } else {
+      console.log(`  ⚠️ 홈페이지 URL을 찾을 수 없음`);
     }
 
     if (!scrapedContent) {
@@ -289,7 +336,7 @@ async function processHospital(
       doctor_name: facts.doctorName,
       english_name: null,
       photo_url: photoUrl,
-      hospital_url: hospital.url || null,
+      hospital_url: targetUrl || null,
       region: region.replace(' 피부과', '').replace(' 성형외과', ''),
       specialist_type: facts.specialistType,
       years_of_practice: facts.yearsOfPractice,

@@ -58,6 +58,27 @@ const EXCLUDED_NAMES = [
   '의원', // 단독으로 "의원"만 있는 경우는 제외하지 않음
 ];
 
+// 제외할 URL 패턴 (소셜미디어, 블로그 등 - 실제 병원 홈페이지가 아님)
+const EXCLUDED_URL_PATTERNS = [
+  'instagram.com',
+  'facebook.com',
+  'blog.naver.com',
+  'cafe.naver.com',
+  'youtube.com',
+  'twitter.com',
+  'x.com',
+  'tiktok.com',
+  'kakao.com',
+  'modoo.at', // 네이버 모두 (간이 페이지)
+];
+
+// URL이 실제 병원 홈페이지인지 확인
+function isValidHospitalUrl(url: string | null): boolean {
+  if (!url) return false;
+  const lowerUrl = url.toLowerCase();
+  return !EXCLUDED_URL_PATTERNS.some(pattern => lowerUrl.includes(pattern));
+}
+
 // 병원 필터링 함수
 function filterClinics(
   clinics: HospitalBasicInfo[],
@@ -131,13 +152,25 @@ export async function searchHospitals(
     return [];
   }
 
-  return data.items.map((item) => ({
-    name: item.title?.replace(/<[^>]*>/g, '') || '이름없음', // HTML 태그 제거
-    url: item.link || null,
-    address: item.roadAddress || item.address || '',
-    telephone: item.telephone || '',
-    category: item.category || '',
-  }));
+  return data.items.map((item) => {
+    const name = item.title?.replace(/<[^>]*>/g, '') || '이름없음'; // HTML 태그 제거
+    const rawUrl = item.link || null;
+
+    // 소셜미디어/블로그 URL 필터링
+    let url = rawUrl;
+    if (rawUrl && !isValidHospitalUrl(rawUrl)) {
+      console.log(`  ⚠️ ${name}: 소셜미디어 URL 제외 (${rawUrl})`);
+      url = null; // 실제 홈페이지가 아니면 null로 설정
+    }
+
+    return {
+      name,
+      url,
+      address: item.roadAddress || item.address || '',
+      telephone: item.telephone || '',
+      category: item.category || '',
+    };
+  });
 }
 
 // 특정 지역의 피부과/성형외과 검색
