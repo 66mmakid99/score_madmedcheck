@@ -6,11 +6,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Gemini 모델 ID
 export const GEMINI_MODELS = {
   // 빠른 작업용 (팩트 추출, 코멘트)
-  flash: 'gemini-2.0-flash-exp',
-  flash15: 'gemini-1.5-flash',
-  // 복잡한 분석용 (전문분야 프로파일)
-  pro: 'gemini-1.5-pro',
-  pro25: 'gemini-2.5-pro-preview-05-06',
+  flash: 'gemini-2.0-flash',
+  flash15: 'gemini-1.5-flash-latest',
+  // 복잡한 분석용 (전문분야 프로파일) - 2.0 Flash 사용 (1.5 Pro 지원 종료)
+  pro: 'gemini-2.0-flash',
+  pro25: 'gemini-2.0-flash',
 } as const;
 
 export type GeminiModel = keyof typeof GEMINI_MODELS;
