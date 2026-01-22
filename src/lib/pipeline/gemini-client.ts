@@ -4,12 +4,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Gemini 모델 ID (2026-01-21 업데이트)
-// gemini-1.5 시리즈 404 에러로 2.0/2.5 사용
+// 모든 모델을 gemini-2.0-flash로 통일 (안정적)
 export const GEMINI_MODELS = {
-  // 빠른 작업용 (팩트 추출, 코멘트)
   flash: 'gemini-2.0-flash',
-  // 복잡한 분석용 (전문분야 프로파일)
-  pro: 'gemini-2.5-pro-preview-05-06',
+  pro: 'gemini-2.0-flash',  // 2.5-pro 404 에러로 flash 사용
 } as const;
 
 export type GeminiModel = keyof typeof GEMINI_MODELS;
