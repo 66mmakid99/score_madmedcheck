@@ -189,6 +189,104 @@ export async function searchClinicsInRegion(
   return filteredClinics;
 }
 
+// 네이버 웹 검색으로 병원 홈페이지 URL 찾기
+export async function findHospitalWebsite(
+  hospitalName: string,
+  clientId: string,
+  clientSecret: string
+): Promise<string | null> {
+  const query = `${hospitalName} 공식 홈페이지`;
+  const url = new URL('https://openapi.naver.com/v1/search/webkr.json');
+  url.searchParams.set('query', query);
+  url.searchParams.set('display', '10');
+
+  try {
+    const response = await fetch(url.toString(), {
+      headers: {
+        'X-Naver-Client-Id': clientId,
+        'X-Naver-Client-Secret': clientSecret,
+      },
+    });
+
+    if (!response.ok) {
+      console.log(`  ⚠️ 웹 검색 실패: ${hospitalName}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.items || data.items.length === 0) {
+      return null;
+    }
+
+    // 유효한 병원 홈페이지 URL 찾기
+    for (const item of data.items) {
+      const link = item.link;
+      if (link && isValidHospitalUrl(link)) {
+        // 병원 이름이 URL이나 제목에 포함되어 있는지 확인 (정확도 향상)
+        const title = (item.title || '').replace(/<[^>]*>/g, '').toLowerCase();
+        const normalizedName = hospitalName.replace(/의원|클리닉|병원|피부과|성형외과/g, '').trim().toLowerCase();
+
+        if (title.includes(normalizedName) || link.toLowerCase().includes(normalizedName.replace(/\s/g, ''))) {
+          console.log(`  🔗 홈페이지 발견: ${link}`);
+          return link;
+        }
+      }
+    }
+
+    // 정확한 매칭이 없으면 첫 번째 유효한 URL 반환
+    for (const item of data.items) {
+      if (item.link && isValidHospitalUrl(item.link)) {
+        console.log(`  🔗 홈페이지 추정: ${item.link}`);
+        return item.link;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`  ❌ 웹 검색 오류 (${hospitalName}):`, error);
+    return null;
+  }
+}
+
+// 하이브리드 검색: 지도에서 목록 + 웹검색으로 홈페이지 찾기
+export async function searchClinicsHybrid(
+  region: string,
+  specialty: '피부과' | '성형외과',
+  clientId: string,
+  clientSecret: string
+): Promise<HospitalBasicInfo[]> {
+  // 1. 지도 API로 병원 목록 수집
+  const clinics = await searchClinicsInRegion(region, specialty, clientId, clientSecret);
+
+  // 2. URL이 없는 병원은 웹 검색으로 홈페이지 찾기
+  const results: HospitalBasicInfo[] = [];
+
+  for (const clinic of clinics) {
+    if (clinic.url) {
+      // 이미 유효한 URL이 있으면 그대로 사용
+      results.push(clinic);
+    } else {
+      // 웹 검색으로 홈페이지 찾기
+      console.log(`  🔍 웹 검색: ${clinic.name}`);
+      const websiteUrl = await findHospitalWebsite(clinic.name, clientId, clientSecret);
+
+      results.push({
+        ...clinic,
+        url: websiteUrl,
+      });
+
+      // API 레이트 리밋 방지
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+
+  const withUrl = results.filter(c => c.url).length;
+  console.log(`  📊 URL 확보: ${withUrl}/${results.length}개`);
+
+  return results;
+}
+
 // 여러 지역 일괄 검색
 export async function searchClinicsInMultipleRegions(
   regions: string[],

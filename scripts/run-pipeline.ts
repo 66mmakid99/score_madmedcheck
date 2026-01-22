@@ -2,7 +2,7 @@
 // 데이터 수집 파이프라인 실행 스크립트 (D1 버전)
 
 import { config } from 'dotenv';
-import { searchClinicsInRegion } from '../src/lib/pipeline/naver-search';
+import { searchClinicsHybrid } from '../src/lib/pipeline/naver-search';
 import { scrapeUrl, extractDoctorSections } from '../src/lib/pipeline/firecrawl';
 import { extractFacts, generateConsultingComment } from '../src/lib/pipeline/claude-analyzer';
 import { analyzeDoctor } from '../src/lib/pipeline/scoring';
@@ -383,8 +383,8 @@ async function main() {
     console.log(`🏥 ${region} 크롤링 시작`);
     console.log('='.repeat(50));
 
-    // 네이버 검색
-    const hospitals = await searchClinicsInRegion(
+    // 하이브리드 검색: 지도 API + 웹 검색으로 홈페이지 찾기
+    const hospitals = await searchClinicsHybrid(
       region,
       '피부과',
       envConfig.naverClientId,
