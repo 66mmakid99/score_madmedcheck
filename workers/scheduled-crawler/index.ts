@@ -1,6 +1,8 @@
 // workers/scheduled-crawler/index.ts
 // Cloudflare Worker - 스케줄 기반 자동 크롤링
 
+/// <reference types="@cloudflare/workers-types" />
+
 interface Env {
   DB: D1Database;
   NAVER_CLIENT_ID: string;

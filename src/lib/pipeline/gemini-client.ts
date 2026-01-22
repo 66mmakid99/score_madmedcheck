@@ -99,7 +99,7 @@ export async function analyzeImageWithGemini(
   apiKey: string,
   imageUrl: string,
   prompt: string,
-  model: keyof typeof GEMINI_MODELS = 'flash15'
+  model: keyof typeof GEMINI_MODELS = 'flash'
 ): Promise<string | null> {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);

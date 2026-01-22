@@ -130,7 +130,7 @@ export async function searchDoctorPhotos(
       return [];
     }
 
-    const data = await response.json();
+    const data = await response.json() as { images_results?: { original?: string; thumbnail?: string; title?: string }[] };
     const results: string[] = [];
 
     // 이미지 결과에서 적절한 사진들 수집

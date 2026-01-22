@@ -24,8 +24,8 @@ async function searchDoctorPhotos(
     const url = `https://serpapi.com/search.json?engine=google_images&q=${encodeURIComponent(query)}&api_key=${apiKey}&num=${count}`;
     const response = await fetch(url);
     if (!response.ok) return [];
-    const data = await response.json();
-    return (data.images_results || []).slice(0, count).map((r: { original: string }) => r.original);
+    const data = await response.json() as { images_results?: { original: string }[] };
+    return (data.images_results || []).slice(0, count).map((r) => r.original);
   } catch {
     return [];
   }
@@ -194,7 +194,7 @@ function generateInsertSQL(doctor: DoctorData): string {
 }
 
 async function processHospital(
-  hospital: { name: string; url?: string; address?: string; telephone?: string },
+  hospital: { name: string; url?: string | null; address?: string; telephone?: string },
   region: string,
   config: ReturnType<typeof validateEnv>
 ): Promise<DoctorData | null> {

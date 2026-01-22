@@ -213,7 +213,7 @@ export async function findHospitalWebsite(
       return null;
     }
 
-    const data = await response.json();
+    const data = await response.json() as { items?: { link?: string; title?: string }[] };
 
     if (!data.items || data.items.length === 0) {
       return null;
