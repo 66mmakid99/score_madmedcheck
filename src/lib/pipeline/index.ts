@@ -119,7 +119,7 @@ export async function processHospital(
     const doctorId = await upsertDoctor(config.db, doctorData);
 
     console.log(`  💾 저장 완료: ${doctorId}`);
-    return { hospitalName, success: true, doctorId };
+    return { hospitalName, success: true, doctorId: doctorId ?? undefined };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`  ❌ 오류: ${errorMessage}`);

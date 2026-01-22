@@ -1,12 +1,12 @@
 // src/pages/sitemap.xml.ts
 import type { APIRoute } from 'astro';
-import { getD1, getAllDoctorIds } from '../lib/d1';
+import { getD1, getAllDoctorIds, type D1Database } from '../lib/d1';
 
 const siteUrl = 'https://score-madmedcheck2.pages.dev';
 
 export const GET: APIRoute = async ({ locals }) => {
   // Cloudflare D1 바인딩
-  const runtime = (locals as { runtime?: { env?: { DB?: unknown } } }).runtime;
+  const runtime = (locals as { runtime?: { env?: { DB?: D1Database } } }).runtime;
   const db = getD1(runtime);
   const doctorIds = await getAllDoctorIds(db);
 
